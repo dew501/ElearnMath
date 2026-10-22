@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --blue-bg: #EAF6FF;
+  --blue-100: #D3ECFF;
+  --blue-400: #5FA8E8;
+  --blue-600: #2E7BC4;
+  --blue-800: #1B4E80;
+  --orange: #FFB454;
+  --orange-dark: #F0932B;
+  --orange-100: #FFF1DD;
+  --white: #ffffff;
+  --ink: #1F2A37;
+  --muted: #66748C;
+  --line: #DCEAF7;
+  --success: #22B573;
+  --success-bg: #E4F8EE;
+  --danger: #E3543F;
+  --danger-bg: #FDEAE7;
+}
+
+body {
+  margin: 0;
+  background-color: var(--blue-bg);
+  color: var(--ink);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  min-height: 100vh;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(27, 78, 128, 0.08);
+}
