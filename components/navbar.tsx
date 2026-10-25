@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { LogOut } from 'lucide-react';
 import { Spinner } from '@/components/ui/skeleton';
+import { NotifBell } from '@/components/notif-bell';
+import { Kehadiran } from '@/components/kehadiran';
 
 interface NavbarProps {
   title?: string;
@@ -34,10 +36,11 @@ export function Navbar({
   };
 
   const nama = userName.trim() || 'Pengguna';
-  const beranda = userRole === 'siswa' ? '/siswa/materi' : userRole === 'admin' ? '/admin' : '/guru/koreksi';
+  const beranda = userRole === 'siswa' ? '/siswa' : userRole === 'admin' ? '/admin' : '/guru/koreksi';
 
   return (
     <header className="sticky top-0 z-30 bg-white/70 backdrop-blur-xl border-b border-white/70 shadow-[0_1px_0_rgba(27,78,128,0.06),0_8px_24px_rgba(27,78,128,0.04)]">
+      <Kehadiran />
       <div className="h-16 px-4 sm:px-6 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <Link href={beranda} className="group flex items-center gap-2.5 shrink-0 rounded-xl" aria-label="Beranda elearnMath">
@@ -55,8 +58,14 @@ export function Navbar({
           <span className="text-[13px] sm:text-sm font-semibold text-[#1F2A37] truncate">{title}</span>
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-          <div className="flex items-center gap-2 pl-1 pr-2.5 sm:pr-3 py-1 rounded-full bg-white/80 border border-[#DCEAF7] shadow-sm">
+        <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+          <NotifBell />
+          <Link
+            href="/profil"
+            title="Profil saya"
+            aria-label={`Profil saya (${nama})`}
+            className="flex items-center gap-2 pl-1 pr-2.5 sm:pr-3 py-1 rounded-full bg-white/80 border border-[#DCEAF7] shadow-sm hover:border-[#2E7BC4] transition-colors"
+          >
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#FFB454] to-[#F0932B] text-white flex items-center justify-center text-xs font-extrabold">
               {nama.charAt(0).toUpperCase()}
             </div>
@@ -66,7 +75,7 @@ export function Navbar({
                 {userRole}
               </span>
             )}
-          </div>
+          </Link>
 
           <button
             onClick={handleLogout}

@@ -12,6 +12,16 @@ export function isJenis(value: string): value is JenisPengerjaan {
   return value === 'lkpd' || value === 'latihan' || value === 'evaluasi';
 }
 
+/** Satu kriteria rubrik soal uraian (dipakai koreksi AI & mesin aturan). */
+export interface KriteriaRubrik {
+  jenis: 'angka' | 'kata' | 'panjang';
+  label: string;
+  /** angka: nilai yang diharapkan; kata: alternatif dipisah "|"; panjang: jumlah kata minimal */
+  nilai: string | number;
+  toleransi?: number;
+  poin: number;
+}
+
 export interface Soal {
   id: string;
   urutan: number | null;
@@ -25,10 +35,51 @@ export interface Soal {
   kunci_jawaban?: string | null;
   id_materi?: string | null;
   category?: string;
+  tahap?: string | null;
+  jawaban_ideal?: string | null;
+  rubrik?: KriteriaRubrik[] | null;
 }
 
-/** Kolom soal yang boleh dibaca siswa (tanpa kunci_jawaban). */
-export const KOLOM_SOAL_SISWA = 'id, urutan, tipe, pertanyaan, opsi_a, opsi_b, opsi_c, opsi_d, bobot';
+/** Kolom soal yang boleh dibaca siswa (tanpa kunci jawaban, jawaban ideal, dan rubrik). */
+export const KOLOM_SOAL_SISWA = 'id, urutan, tipe, pertanyaan, opsi_a, opsi_b, opsi_c, opsi_d, bobot, tahap';
+
+/** Tahapan LKPD konstruktivis (bawaan; guru boleh mengubah judul & instruksinya). */
+export interface TahapLkpd {
+  kunci: string;
+  judul: string;
+  instruksi: string;
+}
+export const TAHAPAN_BAWAAN: TahapLkpd[] = [
+  { kunci: 'orientasi', judul: 'Orientasi Masalah', instruksi: 'Baca dan pahami masalah berikut. Tuliskan apa yang diketahui dan apa yang ditanyakan.' },
+  { kunci: 'eksplorasi', judul: 'Eksplorasi', instruksi: 'Coba selesaikan masalah dengan caramu sendiri. Amati pola atau hubungan yang kamu temukan.' },
+  { kunci: 'konstruksi', judul: 'Membangun Konsep', instruksi: 'Gunakan hasil eksplorasimu untuk menyusun konsep atau rumus. Jelaskan langkah-langkahnya.' },
+  { kunci: 'kesimpulan', judul: 'Menyimpulkan', instruksi: 'Tuliskan kesimpulan dari kegiatan ini dengan bahasamu sendiri.' },
+  { kunci: 'refleksi', judul: 'Refleksi', instruksi: 'Bagian mana yang sudah kamu pahami, dan bagian mana yang masih membingungkan?' },
+];
+export function tahapanDari(json: unknown): TahapLkpd[] {
+  if (!Array.isArray(json)) return TAHAPAN_BAWAAN;
+  const t = json
+    .filter((x) => x && typeof x === 'object')
+    .map((x: any) => ({ kunci: String(x.kunci ?? '').trim(), judul: String(x.judul ?? '').trim(), instruksi: String(x.instruksi ?? '') }))
+    .filter((x) => x.kunci && x.judul);
+  return t.length ? t : TAHAPAN_BAWAAN;
+}
+
+/**
+ * Urutan soal untuk siswa: soal umum dulu, lalu soal khusus bab. Untuk LKPD bertahap:
+ * soal umum (pembuka) → soal per tahap sesuai urutan tahapan → soal khusus tanpa tahap.
+ */
+export function urutkanSoal<T extends Soal>(soal: T[], tahapan?: TahapLkpd[]): T[] {
+  const pos = (q: Soal) => {
+    if (!tahapan?.length) return 0;
+    if (!q.id_materi) return -1;
+    const i = tahapan.findIndex((t) => t.kunci === q.tahap);
+    return i === -1 ? tahapan.length : i;
+  };
+  return [...soal].sort(
+    (a, b) => pos(a) - pos(b) || Number(Boolean(a.id_materi)) - Number(Boolean(b.id_materi)) || (a.urutan ?? 0) - (b.urutan ?? 0)
+  );
+}
 
 export const OPSI = ['A', 'B', 'C', 'D'] as const;
 
@@ -67,6 +118,23 @@ export function pesanGalat(err: { message?: string; code?: string } | null | und
     OPSI_KURANG: 'Soal pilihan ganda minimal punya opsi A dan B.',
     KUNCI_TIDAK_VALID: 'Pilih kunci jawaban dari opsi yang sudah diisi.',
     SOAL_TIDAK_ADA: 'Soal tidak ditemukan (mungkin sudah dihapus).',
+    MATERI_BELUM_TERSEDIA: 'Materi ini belum dibuka untuk kelasmu. Tunggu sampai guru menerbitkannya.',
+    KHUSUS_ADMIN: 'Tindakan ini khusus admin.',
+    NAMA_KOSONG: 'Nama tidak boleh kosong.',
+    KELAS_WAJIB: 'Pilih minimal satu kelas. Jika Anda belum mengampu kelas, minta admin memasukkan Anda ke kelas.',
+    KELAS_BUKAN_MILIK: 'Anda hanya bisa memilih kelas yang Anda ampu.',
+    KELAS_TIDAK_ADA: 'Kelas tidak ditemukan (mungkin sudah dihapus).',
+    BUKAN_AKUN_SISWA: 'Hanya akun siswa yang bisa dimasukkan ke kelas sebagai siswa.',
+    PENGGUNA_TIDAK_ADA: 'Akun pengguna tidak ditemukan.',
+    JUDUL_KOSONG: 'Judul belum diisi.',
+    ISI_KOSONG: 'Isi belum diisi.',
+    RUBRIK_TIDAK_VALID: 'Format rubrik tidak valid.',
+    SUMBER_TIDAK_VALID: 'Sumber koreksi tidak dikenal.',
+    HASIL_TIDAK_VALID: 'Hasil koreksi tidak valid.',
+    PENGUMPULAN_TIDAK_ADA: 'Pengumpulan tidak ditemukan (mungkin sudah dihapus).',
+    kelas_nama_unik: 'Nama kelas itu sudah dipakai.',
+    kelas_anggota_satu_kelas_siswa: 'Siswa itu sudah terdaftar di kelas lain.',
+    jadwal_check: 'Jam selesai harus setelah jam mulai.',
   };
   for (const [kode, pesan] of Object.entries(peta)) {
     if (msg.includes(kode)) return pesan;

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -20,6 +20,7 @@ const FOKUS = 'button:not([disabled]), [href], input:not([disabled]), textarea:n
 
 export function Modal({ open, title, icon, children, actions, onClose, busy = false, lebar = 'md' }: ModalProps) {
   const panel = useRef<HTMLDivElement>(null);
+  const idJudul = useId();
   const onCloseRef = useRef(onClose);
   const busyRef = useRef(busy);
   onCloseRef.current = onClose;
@@ -73,11 +74,11 @@ export function Modal({ open, title, icon, children, actions, onClose, busy = fa
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="modal-judul"
+        aria-labelledby={idJudul}
         className={`relative w-full ${lebar === 'lg' ? 'max-w-2xl max-h-[92vh] overflow-y-auto' : 'max-w-md'} bg-white rounded-3xl shadow-[0_30px_80px_rgba(15,42,71,0.35)] p-6 sm:p-7 anim-pop`}
       >
         {icon && <div className="mb-4">{icon}</div>}
-        <h2 id="modal-judul" className="text-lg font-extrabold text-[#1B4E80] mb-2">
+        <h2 id={idJudul} className="text-lg font-extrabold text-[#1B4E80] mb-2">
           {title}
         </h2>
         <div className="text-sm text-[#4B5A70] leading-relaxed">{children}</div>

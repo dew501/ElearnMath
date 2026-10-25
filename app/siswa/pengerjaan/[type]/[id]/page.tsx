@@ -5,7 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Navbar } from '@/components/navbar';
+import { SiswaNav } from '@/components/siswa-nav';
 import { LockBanner } from '@/components/lock-banner';
+import { PengantarLkpd, KepalaTahap } from '@/components/lkpd-pengantar';
+import { RingkasanTinjau, KartuTinjau, type HasilTinjau } from '@/components/tinjau-soal';
 import { Modal } from '@/components/ui/modal';
 import { ScoreRing } from '@/components/ui/score-ring';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
@@ -19,11 +22,27 @@ import {
   isJenis,
   pesanGalat,
   petaJawaban,
+  tahapanDari,
   teksOpsi,
+  urutkanSoal,
   type JenisPengerjaan,
   type Soal,
+  type TahapLkpd,
 } from '@/lib/pengerjaan';
-import { ArrowLeft, Clock, AlertTriangle, Send, RotateCcw, CheckCircle2, Check, CloudUpload, ArrowRight, MessageSquareQuote } from 'lucide-react';
+import { ArrowLeft, Clock, AlertTriangle, Send, RotateCcw, CheckCircle2, Check, CloudUpload, ArrowRight, MessageSquareQuote, ChevronDown, ListChecks } from 'lucide-react';
+
+interface MetaLkpd {
+  judul: string | null;
+  tujuan: string | null;
+  petunjuk: string | null;
+  tahapan: TahapLkpd[];
+}
+interface Kelompok {
+  kunci: string;
+  judul: string | null;
+  instruksi: string | null;
+  soal: Soal[];
+}
 
 interface PengerjaanProps {
   params: {
@@ -85,9 +104,13 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
 
   // Soal & Jawaban
   const [questions, setQuestions] = useState<Soal[]>([]);
+  const [metaLkpd, setMetaLkpd] = useState<MetaLkpd | null>(null);
+  const bagianAktif = useRef('Awal lembar');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [jawabanAwal, setJawabanAwal] = useState<Record<string, string>>({});
   const [kirimanLama, setKirimanLama] = useState<KirimanLama | null>(null);
+  const [tinjau, setTinjau] = useState<{ dinilai: boolean; soal: Record<string, HasilTinjau> } | null>(null);
+  const [tinjauGagal, setTinjauGagal] = useState(false);
   const [mengulang, setMengulang] = useState(false);
   const [drafPulih, setDrafPulih] = useState<number | null>(null);
   const [tersimpanPada, setTersimpanPada] = useState<number | null>(null);
@@ -196,32 +219,47 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
       } else {
         const { data, error } = await supabase
           .from('pengerjaan_evaluasi')
-          .select('answers_json, score, completed_at')
+          .select('answers_json, score, feedback, dinilai_at, completed_at')
           .eq('id_siswa', user.id)
           .or(`id_materi.eq.${id},id_materi.is.null`)
           .limit(1);
         if (error) return gagal(error);
         const r = data?.[0];
-        if (r) lama = { jawaban: petaJawaban(r.answers_json), score: r.score, feedback: null, status: null, waktu: r.completed_at, bolehUlang: false };
+        if (r) lama = { jawaban: petaJawaban(r.answers_json), score: r.score, feedback: r.dinilai_at ? r.feedback : null, status: r.dinilai_at ? 'graded' : null, waktu: r.completed_at, bolehUlang: false };
       }
       if (batal) return;
 
-      // 3. Muat Bank Soal (tanpa kunci jawaban)
-      const { data: soal, error: soalError } = await supabase
-        .from('questions')
-        .select(KOLOM_SOAL_SISWA)
-        .eq('category', jenis)
-        .or(`id_materi.is.null,id_materi.eq.${id}`)
-        .order('id_materi', { ascending: true, nullsFirst: true })
-        .order('urutan', { ascending: true });
+      // 3. Muat Bank Soal (tanpa kunci jawaban) + struktur LKPD bertahap
+      const [{ data: soal, error: soalError }, metaRes] = await Promise.all([
+        supabase
+          .from('questions')
+          .select(KOLOM_SOAL_SISWA + ', id_materi')
+          .eq('category', jenis)
+          .or(`id_materi.is.null,id_materi.eq.${id}`)
+          .order('id_materi', { ascending: true, nullsFirst: true })
+          .order('urutan', { ascending: true }),
+        jenis === 'lkpd' ? supabase.from('lkpd').select('judul, tujuan, petunjuk, tahapan').eq('id_materi', id).maybeSingle() : Promise.resolve({ data: null }),
+      ]);
       if (batal) return;
       if (soalError) return gagal(soalError);
+      const meta = metaRes.data ? { ...(metaRes.data as any), tahapan: tahapanDari((metaRes.data as any).tahapan) } : null;
+      setMetaLkpd(meta);
 
-      setQuestions((soal ?? []) as Soal[]);
+      setQuestions(urutkanSoal((soal ?? []) as unknown as Soal[], meta?.tahapan));
       setKirimanLama(lama);
 
       if (lama && !lama.bolehUlang) {
         hapusDraf(key);
+        // Benar/salah per soal (kunci & contoh jawaban baru dibuka setelah guru menilai)
+        const { data: t, error: tErr } = await supabase.rpc('tinjau_pengerjaan', { p_jenis: jenis, p_id_materi: id });
+        if (batal) return;
+        const daftar: ({ id: string } & Partial<HasilTinjau>)[] = Array.isArray(t?.soal) ? t.soal : [];
+        setTinjau(
+          tErr
+            ? null
+            : { dinilai: Boolean(t?.dinilai), soal: Object.fromEntries(daftar.map((x) => [x.id, { benar: x.benar ?? null, kunci: x.kunci ?? null, pembahasan: x.pembahasan ?? null }])) }
+        );
+        setTinjauGagal(Boolean(tErr));
         setFase('tinjau');
         return;
       }
@@ -298,10 +336,13 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
 
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      // Catat juga bab & bagian yang sedang dikerjakan (tahap/soal terakhir yang disentuh)
       const { error } = await supabase.from('tab_switch_logs').insert({
         id_siswa: user.id,
         category: jenis,
         switch_count: jumlah,
+        id_materi: UUID_RE.test(id) ? id : null,
+        bagian: bagianAktif.current.slice(0, 120),
       });
       if (error) console.warn('Gagal mencatat perpindahan tab:', error.message);
     };
@@ -310,7 +351,15 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
     return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
-  }, [fase, jenis, supabase]);
+  }, [fase, jenis, id, supabase]);
+
+  // Catat mulai mengerjakan (sekali saat lembar terbuka)
+  const sudahCatat = useRef(false);
+  useEffect(() => {
+    if (fase !== 'form' || !jenis || sudahCatat.current) return;
+    sudahCatat.current = true;
+    supabase.rpc('catat_aktivitas', { p_jenis: 'mulai_tugas', p_id_materi: id, p_detail: { jenis } }).then(() => {}, () => {});
+  }, [fase, jenis, id, supabase]);
 
   const handleSelectAnswer = (questionId: string, val: string) => {
     setAnswers((prev) => ({ ...prev, [questionId]: val }));
@@ -323,6 +372,21 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
   const adaUraian = questions.some((q) => q.tipe !== 'pg');
   const lanjutan = jenis ? LANJUTAN[jenis] : undefined;
   const linkMateri = UUID_RE.test(id) ? `/siswa/materi/${id}` : '/siswa/materi';
+
+  // Penomoran soal berurutan & pengelompokan per tahap LKPD
+  const nomorSoal = new Map(questions.map((q, i) => [q.id, i + 1]));
+  const tahapAsli = jenis === 'lkpd' && metaLkpd ? metaLkpd.tahapan.filter((t) => questions.some((q) => q.id_materi && q.tahap === t.kunci)) : [];
+  const kelompok: Kelompok[] = (() => {
+    if (!tahapAsli.length || !metaLkpd) return [{ kunci: '_semua', judul: null, instruksi: null, soal: questions }];
+    const out: Kelompok[] = [];
+    const umum = questions.filter((q) => !q.id_materi);
+    if (umum.length) out.push({ kunci: '_umum', judul: 'Soal Pembuka', instruksi: null, soal: umum });
+    tahapAsli.forEach((t) => out.push({ kunci: t.kunci, judul: t.judul, instruksi: t.instruksi, soal: questions.filter((q) => q.id_materi && q.tahap === t.kunci) }));
+    const lain = questions.filter((q) => q.id_materi && !metaLkpd.tahapan.some((t) => t.kunci === q.tahap));
+    if (lain.length) out.push({ kunci: '_lain', judul: 'Soal Lainnya', instruksi: null, soal: lain });
+    return out;
+  })();
+  const bertahap = kelompok.length > 1 || !!kelompok[0]?.judul;
 
   // Pesan validasi ikut berkurang saat soal dijawab dan hilang sendiri bila semua terisi.
   const pesanValidasi =
@@ -407,10 +471,12 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
   }
 
   const sudahDinilai = kirimanLama?.status === 'graded';
+  const dinilaiTinjau = tinjau ? tinjau.dinilai : sudahDinilai;
 
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar title={judul} userRole="siswa" userName={namaSiswa} />
+      {jenis && <SiswaNav aktif={`/siswa/${jenis}`} />}
 
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[860px] w-full mx-auto">
         <div className="mb-5 flex justify-between items-center gap-3 flex-wrap">
@@ -494,11 +560,11 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
             </svg>
             <h2 className="text-2xl font-extrabold text-[#1B4E80] mb-2">Pengumpulan Berhasil!</h2>
             <p className="text-sm text-[#66748C] max-w-md mx-auto mb-7">
-              Lembar jawaban Anda sudah tersimpan.{adaUraian ? ' Guru akan memeriksa jawaban uraian dan memberikan nilai akhir.' : ''}
+              Lembar jawaban Anda sudah tersimpan. Guru akan memeriksa{adaUraian ? ' jawaban uraian' : ''} dan memvalidasi nilai akhirnya; kabarnya muncul di lonceng notifikasi.
             </p>
             {hasil && hasil.maks > 0 && (
               <div className="inline-flex flex-col items-center px-8 py-5 rounded-3xl bg-[#F4F9FF] border border-[#DCEAF7] mb-8">
-                <ScoreRing value={hasil.skor} max={maksTotal} caption={adaUraian ? 'Skor sementara' : 'Skor akhir'} />
+                <ScoreRing value={hasil.skor} max={maksTotal} caption="Skor sementara" />
                 <div className="text-xs text-[#4B5A70] mt-3 tabular">
                   Pilihan ganda: <strong>{hasil.skor} / {hasil.maks}</strong> poin
                   {adaUraian && <> &bull; Uraian ({maksTotal - hasil.maks} poin) dinilai guru</>}
@@ -512,6 +578,16 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               >
                 Kembali ke Halaman Materi
               </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  setHasil(null);
+                  setMuatUlang((n) => n + 1);
+                }}
+                className="btn-press px-6 py-3 rounded-xl bg-white border border-[#DCEAF7] text-[#1B4E80] font-bold text-sm shadow-sm hover:border-[#2E7BC4] inline-flex items-center gap-1.5"
+              >
+                <ListChecks className="w-4 h-4" /> Lihat Hasil per Soal
+              </button>
               {lanjutan && (
                 <Link
                   href={`/siswa/pengerjaan/${lanjutan.jenis}/${id}`}
@@ -534,21 +610,21 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               </div>
               <h1 className="text-2xl font-extrabold text-[#1B4E80] mb-1">{judul}</h1>
               <p className="text-xs text-[#66748C]">
-                {jenis === 'evaluasi' ? 'Evaluasi akhir' : judulMateri} &bull; Dikumpulkan {formatTanggal(kirimanLama.waktu)}
+                {judulMateri} &bull; Dikumpulkan {formatTanggal(kirimanLama.waktu)}
               </p>
 
-              <div className="mt-6 grid sm:grid-cols-[auto,1fr] gap-6 items-center p-5 rounded-2xl bg-[#F4F9FF] border border-[#DCEAF7]">
+              <div className="mt-6 grid grid-cols-1 sm:grid-cols-[auto,1fr] gap-6 items-center p-5 rounded-2xl bg-[#F4F9FF] border border-[#DCEAF7]">
                 <ScoreRing
                   value={kirimanLama.score}
                   max={sudahDinilai ? 100 : maksTotal}
                   tone={sudahDinilai ? 'green' : 'orange'}
-                  caption={sudahDinilai ? 'Nilai akhir dari guru' : jenis === 'evaluasi' ? 'Nilai evaluasi' : 'Skor sementara'}
+                  caption={sudahDinilai ? 'Nilai akhir dari guru' : 'Skor sementara'}
                 />
                 <div>
                   {sudahDinilai ? (
                     <div className="text-sm font-extrabold text-[#15885A]">Sudah dinilai guru</div>
                   ) : jenis === 'evaluasi' ? (
-                    <div className="text-sm font-extrabold text-[#1B4E80]">Evaluasi tersimpan</div>
+                    <div className="text-sm font-extrabold text-[#E37A12]">Menunggu validasi guru</div>
                   ) : (
                     <div className="text-sm font-extrabold text-[#E37A12]">Menunggu koreksi guru</div>
                   )}
@@ -572,21 +648,21 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               )}
             </div>
 
-            {questions.map((q, idx) => {
-              const jwb = kirimanLama.jawaban[q.id];
-              return (
-                <div key={q.id} className="glass-card p-6 md:p-8 anim-rise" style={{ ['--i' as string]: idx + 1 }}>
-                  <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#EAF6FF] text-[#1B4E80]">
-                    Soal #{q.urutan || idx + 1} &bull; {q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian / Essay'}
-                  </span>
-                  <div className="text-sm md:text-[15px] font-semibold text-[#1F2A37] mt-3 mb-3 leading-relaxed">{q.pertanyaan}</div>
-                  <div className="text-sm p-3.5 rounded-xl bg-white/90 border border-[#DCEAF7] text-[#1F2A37] whitespace-pre-wrap">
-                    <span className="text-[11px] font-bold text-[#66748C] uppercase tracking-wide block mb-1">Jawaban Anda</span>
-                    {jwb ? (q.tipe === 'pg' ? `${jwb.toUpperCase()}. ${teksOpsi(q, jwb) ?? ''}` : jwb) : 'Tidak dijawab'}
-                  </div>
-                </div>
-              );
-            })}
+            <RingkasanTinjau soal={questions} jawaban={kirimanLama.jawaban} hasil={tinjau?.soal ?? {}} dinilai={dinilaiTinjau} gagal={tinjauGagal} />
+
+            {kelompok.map((g) => (
+              <section key={g.kunci} className="space-y-5" aria-label={g.judul ?? 'Soal'}>
+                {bertahap && g.judul && (
+                  <h2 className="text-sm font-extrabold text-[#1B4E80] px-1 pt-1 flex items-center gap-2">
+                    <span className="w-1.5 h-4 rounded-full bg-[#F0932B]" aria-hidden="true" />
+                    {g.judul}
+                  </h2>
+                )}
+                {g.soal.map((q) => (
+                  <KartuTinjau key={q.id} q={q} nomor={nomorSoal.get(q.id) ?? 1} jawaban={kirimanLama.jawaban[q.id]} hasil={tinjau?.soal[q.id]} dinilai={dinilaiTinjau} />
+                ))}
+              </section>
+            ))}
           </div>
         )}
 
@@ -602,8 +678,23 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               </div>
               <h1 className="text-2xl font-extrabold text-[#1B4E80] mb-2">{judul}</h1>
               <p className="text-xs text-[#66748C] leading-relaxed">
-                {jenis === 'evaluasi' ? 'Evaluasi akhir' : judulMateri} &bull; Bacalah setiap butir pertanyaan dengan seksama. Jawaban hanya bisa dikumpulkan satu kali, dan draf tersimpan otomatis di perangkat ini.
+                {judulMateri} &bull; Bacalah setiap butir pertanyaan dengan seksama. Jawaban hanya bisa dikumpulkan satu kali, dan draf tersimpan otomatis di perangkat ini.
               </p>
+              {jenis === 'lkpd' && metaLkpd && (
+                <PengantarLkpd judul={metaLkpd.judul} tujuan={metaLkpd.tujuan} petunjuk={metaLkpd.petunjuk} jumlahTahap={tahapAsli.length} />
+              )}
+              {bertahap && (
+                <nav aria-label="Tahapan kegiatan" className="mt-5 flex flex-wrap gap-2">
+                  {kelompok.map((g, gi) => {
+                    const lengkap = g.soal.every((q) => (answers[q.id] ?? '').trim());
+                    return (
+                      <a key={g.kunci} href={`#tahap-${g.kunci}`} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors ${lengkap ? 'bg-[#E4F8EE] border-[#BBF7D0] text-[#15885A]' : 'bg-white border-[#DCEAF7] text-[#1B4E80] hover:border-[#2E7BC4]'}`}>
+                        {lengkap ? <Check className="w-3 h-3" strokeWidth={3} /> : <span className="tabular">{gi + 1}.</span>} {g.judul}
+                      </a>
+                    );
+                  })}
+                </nav>
+              )}
               {mengulang && (
                 <div className="mt-4 p-3 rounded-xl bg-[#FFF8EC] border border-[#FBD38D] text-xs font-semibold text-[#92400E] flex items-center gap-2">
                   <RotateCcw className="w-4 h-4 shrink-0" />
@@ -622,25 +713,40 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               )}
             </div>
 
-            {/* List Soal */}
-            {questions.map((q, idx) => {
+            {/* List Soal (dikelompokkan per tahap untuk LKPD bertahap) */}
+            {kelompok.map((g, gi) => (
+              <section key={g.kunci} id={`tahap-${g.kunci}`} className="space-y-5 scroll-mt-32" aria-label={g.judul ?? 'Soal'}>
+                {bertahap && g.judul && (
+                  <div className="glass-card p-5 md:p-6 border-l-4 border-[#F0932B] anim-rise">
+                    {g.kunci.startsWith('_') ? (
+                      <h2 className="text-lg font-extrabold text-[#1B4E80]">{g.judul}</h2>
+                    ) : (
+                      <KepalaTahap nomor={tahapAsli.findIndex((t) => t.kunci === g.kunci) + 1} total={tahapAsli.length} judul={g.judul} instruksi={g.instruksi} selesai={g.soal.every((q) => (answers[q.id] ?? '').trim())} />
+                    )}
+                  </div>
+                )}
+            {g.soal.map((q) => {
+              const idx = (nomorSoal.get(q.id) ?? 1) - 1;
               const dijawab = Boolean((answers[q.id] ?? '').trim());
               const sorot = tandaiKosong && !dijawab;
+              const tandaiBagian = () => (bagianAktif.current = `${g.judul && !g.kunci.startsWith('_') ? `Tahap ${g.judul} · ` : ''}Soal ${idx + 1}`);
               return (
                 <fieldset
                   key={q.id}
+                  onFocusCapture={tandaiBagian}
+                  onClickCapture={tandaiBagian}
                   id={`soal-${q.id}`}
                   className={`glass-card p-6 md:p-8 anim-rise transition-shadow ${sorot ? 'ring-2 ring-[#FFB454] ring-offset-2 ring-offset-transparent' : ''}`}
                   style={{ ['--i' as string]: idx + 1 }}
                 >
-                  <legend className="sr-only">Soal nomor {q.urutan || idx + 1}</legend>
+                  <legend className="sr-only">Soal nomor {idx + 1}</legend>
                   <div className="flex justify-between items-center gap-3 mb-4">
                     <div className="flex items-center gap-2.5">
                       <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7BC4] to-[#1B4E80] text-white flex items-center justify-center font-extrabold text-sm shadow-sm tabular">
-                        {q.urutan || idx + 1}
+                        {idx + 1}
                       </span>
                       <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#EAF6FF] text-[#1B4E80]">
-                        Soal #{q.urutan || idx + 1} &bull; {q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian / Essay'}
+                        Soal #{idx + 1} &bull; {q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian / Essay'}
                       </span>
                     </div>
                     <span className="flex items-center gap-2">
@@ -659,7 +765,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
 
                   {/* Input Jawaban PG (radio asli: bisa dipilih dengan keyboard) */}
                   {q.tipe === 'pg' ? (
-                    <div className="grid gap-2.5" role="radiogroup" aria-label={`Pilihan jawaban soal ${q.urutan || idx + 1}`}>
+                    <div className="grid gap-2.5" role="radiogroup" aria-label={`Pilihan jawaban soal ${idx + 1}`}>
                       {OPSI.map((optKey) => {
                         const optText = teksOpsi(q, optKey);
                         if (!optText) return null;
@@ -699,7 +805,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                     <div>
                       <textarea
                         rows={5}
-                        aria-label={`Jawaban uraian soal ${q.urutan || idx + 1}`}
+                        aria-label={`Jawaban uraian soal ${idx + 1}`}
                         value={answers[q.id] || ''}
                         onChange={(e) => handleSelectAnswer(q.id, e.target.value)}
                         placeholder="Ketikkan uraian langkah perhitungan dan penjelasan Anda di sini..."
@@ -711,6 +817,15 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                 </fieldset>
               );
             })}
+                {bertahap && gi < kelompok.length - 1 && (
+                  <div className="flex justify-end">
+                    <a href={`#tahap-${kelompok[gi + 1].kunci}`} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-[#DCEAF7] text-[13px] font-bold text-[#1B4E80] hover:border-[#2E7BC4]">
+                      Lanjut ke {kelompok[gi + 1].judul} <ChevronDown className="w-4 h-4" />
+                    </a>
+                  </div>
+                )}
+              </section>
+            ))}
 
             {/* Bar kirim menempel di bawah: progres + status draf */}
             <div className="sticky bottom-3 z-20 pt-2">

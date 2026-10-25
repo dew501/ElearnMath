@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { alasanTolak, berandaUntuk, isAlasanTolak, KONTAK_ADMIN, PESAN_TOLAK } from '@/lib/akses';
 import { Spinner } from '@/components/ui/skeleton';
-import { BookOpen, Award, CheckCircle2, ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { BookOpen, Award, CheckCircle2, ArrowRight, Mail, Lock, Eye, EyeOff, AlertCircle, Sparkles } from 'lucide-react';
 
 function pesanGagalMasuk(err: { message?: string; code?: string; status?: number } | null): string {
   const msg = err?.message || '';
@@ -103,6 +103,8 @@ export default function LoginPage() {
           return;
         }
 
+        // Catat waktu masuk untuk pemantauan aktivitas (gagal pun tidak menghalangi masuk)
+        await supabase.rpc('catat_aktivitas', { p_jenis: 'masuk' }).then(() => {}, () => {});
         router.push(berandaUntuk(profile!.role));
         router.refresh();
       }
@@ -125,7 +127,7 @@ export default function LoginPage() {
 
           <div className="relative z-10">
             <div className="inline-flex items-center gap-1.5 px-3 md:px-3.5 py-1 md:py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3 md:mb-6 text-[#EAF6FF]">
-              ✨ E-LEARNING MATEMATIKA INTERAKTIF
+              <Sparkles className="w-3.5 h-3.5" /> E-LEARNING MATEMATIKA INTERAKTIF
             </div>
 
             <h1 className="text-2xl md:text-4xl font-extrabold leading-tight md:mb-3.5 tracking-tight">
@@ -252,7 +254,11 @@ export default function LoginPage() {
           </form>
 
           <div className="mt-8 text-center text-xs text-[#66748C] leading-relaxed">
-            Belum memiliki akun? Hubungi Admin Sekolah untuk persetujuan akun.
+            Belum memiliki akun?{' '}
+            <Link href="/daftar" className="font-bold text-[#2E7BC4] hover:text-[#1B4E80] hover:underline underline-offset-2">
+              Daftar di sini
+            </Link>
+            . Akun baru aktif setelah disetujui Admin Sekolah.
             {KONTAK_ADMIN && (
               <div className="mt-1.5 font-semibold text-[#1B4E80]">Kontak Admin: {KONTAK_ADMIN}</div>
             )}

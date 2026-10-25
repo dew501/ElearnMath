@@ -11,7 +11,7 @@ import { Toast, type ToastData } from '@/components/ui/toast';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { pesanGalat } from '@/lib/pengerjaan';
 import { kenaliMedia } from '@/lib/url';
-import { Plus, PencilLine, Trash2, PlayCircle, FileText, Inbox, AlertTriangle, Users } from 'lucide-react';
+import { Plus, PencilLine, Trash2, PlayCircle, FileText, Inbox, AlertTriangle, Users, Eye, EyeOff, CalendarClock, School, ClipboardList } from 'lucide-react';
 
 interface Materi {
   id: string;
@@ -19,6 +19,9 @@ interface Materi {
   title: string | null;
   subbab_json: unknown;
   youtube_url: string | null;
+  terbit: boolean | null;
+  tanggal_buka: string | null;
+  kelas_ids: string[] | null;
 }
 
 export default function KelolaMateriPage() {
@@ -29,6 +32,7 @@ export default function KelolaMateriPage() {
   const [galat, setGalat] = useState<string | null>(null);
   const [daftar, setDaftar] = useState<Materi[]>([]);
   const [jumlahLkpd, setJumlahLkpd] = useState<Record<string, number>>({});
+  const [namaKelas, setNamaKelas] = useState<Record<string, string>>({});
   const [hapus, setHapus] = useState<Materi | null>(null);
   const [menghapus, setMenghapus] = useState(false);
   const [toast, setToast] = useState<ToastData | null>(null);
@@ -37,11 +41,13 @@ export default function KelolaMateriPage() {
     (async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return router.push('/login');
-      const [p, m, l] = await Promise.all([
+      const [p, m, l, k] = await Promise.all([
         supabase.from('users').select('full_name, role').eq('id', user.id).maybeSingle(),
-        supabase.from('materi').select('id, chapter_number, title, subbab_json, youtube_url').order('chapter_number', { ascending: true }),
+        supabase.from('materi').select('id, chapter_number, title, subbab_json, youtube_url, terbit, tanggal_buka, kelas_ids').order('chapter_number', { ascending: true }),
         supabase.from('jawaban_lkpd').select('id_materi'),
+        supabase.from('kelas').select('id, nama'),
       ]);
+      setNamaKelas(Object.fromEntries((k.data ?? []).map((x) => [x.id, x.nama])));
       setProfil({ nama: p.data?.full_name || user.email?.split('@')[0] || 'Guru', role: p.data?.role === 'admin' ? 'admin' : 'guru' });
       if (m.error) setGalat(pesanGalat(m.error));
       setDaftar((m.data ?? []) as Materi[]);
@@ -133,6 +139,16 @@ export default function KelolaMateriPage() {
                         {m.title || 'Tanpa judul'}
                       </Link>
                       <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px] font-semibold text-[#66748C]">
+                        {m.terbit === false ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]"><EyeOff className="w-3 h-3" /> Draf</span>
+                        ) : m.tanggal_buka && new Date(m.tanggal_buka) > new Date() ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]"><CalendarClock className="w-3 h-3" /> Dibuka {new Date(m.tanggal_buka).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]"><Eye className="w-3 h-3" /> Terbit</span>
+                        )}
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F4F9FF] text-[#1B4E80]">
+                          <School className="w-3 h-3" /> {m.kelas_ids?.length ? m.kelas_ids.map((id) => namaKelas[id] ?? '?').join(', ') : 'Semua kelas'}
+                        </span>
                         <span>{subbab} subbab</span>
                         {media?.jenis === 'youtube' && (
                           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626]">
@@ -151,6 +167,12 @@ export default function KelolaMateriPage() {
                     </div>
                   </div>
                   <div className="flex gap-2 shrink-0">
+                    <Link
+                      href={`/guru/lkpd/${m.id}`}
+                      className="btn-press inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-[#B45309] hover:bg-[#FFF1DD]"
+                    >
+                      <ClipboardList className="w-3.5 h-3.5" /> LKPD
+                    </Link>
                     <Link
                       href={`/guru/materi/${m.id}`}
                       className="btn-press inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-[#DCEAF7] text-xs font-bold text-[#1B4E80] hover:border-[#2E7BC4]"

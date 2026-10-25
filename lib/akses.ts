@@ -30,7 +30,7 @@ export function isAlasanTolak(value: string | null): value is AlasanTolak {
 
 export function berandaUntuk(role: string | null | undefined): string {
   if (role === 'admin') return '/admin';
-  return role === 'guru' ? '/guru/koreksi' : '/siswa/materi';
+  return role === 'guru' ? '/guru/koreksi' : '/siswa';
 }
 
 /** Kontak admin (opsional) yang ditampilkan di halaman login, mis. "WA 0812-xxxx / tu@sekolah.sch.id". */

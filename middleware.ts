@@ -48,15 +48,16 @@ export async function middleware(request: NextRequest) {
 
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
-  const rutePrivat = path.startsWith('/siswa') || path.startsWith('/guru') || path.startsWith('/admin');
+  const rutePrivat = ['/siswa', '/guru', '/admin', '/profil'].some((p) => path === p || path.startsWith(`${p}/`));
+  const halamanMasuk = path === '/login' || path === '/daftar';
 
   // 1. Rute privat tanpa login
   if (!user) {
     return rutePrivat ? redirectTo('/login') : response;
   }
 
-  // Profil hanya perlu dicek untuk rute privat & halaman login
-  if (!rutePrivat && path !== '/login') {
+  // Profil hanya perlu dicek untuk rute privat & halaman masuk/daftar
+  if (!rutePrivat && !halamanMasuk) {
     return response;
   }
 
@@ -70,18 +71,19 @@ export async function middleware(request: NextRequest) {
   const alasan = alasanTolak(profile);
   if (alasan) {
     // Halaman login menampilkan alasannya lalu mengeluarkan sesi
-    return path === '/login' ? response : redirectTo(`/login?status=${alasan}`);
+    return halamanMasuk ? response : redirectTo(`/login?status=${alasan}`);
   }
 
   // 3. Arahkan sesuai peran
   const role = profile!.role;
   const beranda = berandaUntuk(role);
 
-  if (path === '/login') {
+  if (halamanMasuk) {
     return redirectTo(beranda);
   }
 
-  if (path.startsWith('/guru') && role !== 'guru' && role !== 'admin') {
+  // Menu guru (koreksi, materi, bank soal, dst.) khusus guru; admin mengelola akun, kelas, dan jadwal
+  if (path.startsWith('/guru') && role !== 'guru') {
     return redirectTo(beranda);
   }
 
