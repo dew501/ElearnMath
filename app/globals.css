@@ -19,14 +19,36 @@
   --success-bg: #E4F8EE;
   --danger: #E3543F;
   --danger-bg: #FDEAE7;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
 }
 
 body {
   margin: 0;
   background-color: var(--blue-bg);
   color: var(--ink);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-jakarta), 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: #FFE2BA;
+  color: var(--blue-800);
+}
+
+:focus-visible {
+  outline: 3px solid rgba(46, 123, 196, 0.45);
+  outline-offset: 2px;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
 
 .glass-card {
@@ -34,6 +56,161 @@ body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.85);
-  border-radius: 16px;
-  box-shadow: 0 10px 30px rgba(27, 78, 128, 0.08);
+  border-radius: 20px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 10px 30px rgba(27, 78, 128, 0.08);
+  transition: box-shadow 0.25s ease, transform 0.25s var(--ease-out), border-color 0.25s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.9) inset, 0 18px 40px rgba(27, 78, 128, 0.13);
+}
+
+/* Tombol: umpan balik tekan yang halus */
+.btn-press {
+  transition: transform 0.12s ease, background-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.btn-press:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+/* Kertas berpetak: identitas "buku tulis matematika" */
+.math-grid {
+  background-image:
+    linear-gradient(rgba(46, 123, 196, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(46, 123, 196, 0.07) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+.math-grid-fade {
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 35%, transparent 80%);
+  mask-image: radial-gradient(ellipse 80% 70% at 50% 0%, #000 35%, transparent 80%);
+}
+.glyph {
+  position: absolute;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--blue-800);
+  opacity: 0.07;
+  user-select: none;
+  animation: floaty var(--dur, 24s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+.glyph-light {
+  color: #ffffff;
+  opacity: 0.12;
+}
+
+/* ---------- animasi ---------- */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes pop {
+  from { opacity: 0; transform: scale(0.94) translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
+}
+@keyframes floaty {
+  0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+  50% { transform: translate3d(0, -22px, 0) rotate(8deg); }
+}
+@keyframes draw {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(18px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+@keyframes soft-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(240, 147, 43, 0.45); }
+  100% { box-shadow: 0 0 0 12px rgba(240, 147, 43, 0); }
+}
+@keyframes chip-in {
+  0% { transform: scale(0.6); }
+  60% { transform: scale(1.12); }
+  100% { transform: scale(1); }
+}
+
+.page-enter { animation: rise 0.45s var(--ease-out) both; }
+.anim-rise { animation: rise 0.5s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
+.anim-fade { animation: fade 0.3s ease both; }
+.anim-pop { animation: pop 0.32s var(--ease-out) both; }
+.anim-toast { animation: toast-in 0.35s var(--ease-out) both; }
+.anim-shake { animation: shake 0.45s ease both; }
+.anim-pulse { animation: soft-pulse 1.8s ease-out infinite; }
+.anim-chip { animation: chip-in 0.3s var(--ease-out) both; }
+.anim-draw {
+  stroke-dasharray: 60;
+  stroke-dashoffset: 60;
+  animation: draw 0.6s 0.25s var(--ease-out) forwards;
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: rgba(27, 78, 128, 0.07);
+  border-radius: 12px;
+}
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.65), transparent);
+  animation: shimmer 1.4s infinite;
+}
+
+/* Konten HTML materi dari database (Tailwind preflight me-reset judul & daftar) */
+.materi-content h1,
+.materi-content h2,
+.materi-content h3,
+.materi-content h4 {
+  color: var(--blue-800);
+  font-weight: 800;
+  line-height: 1.35;
+  margin-top: 1.4em;
+  margin-bottom: 0.5em;
+}
+.materi-content h1 { font-size: 1.5em; }
+.materi-content h2 { font-size: 1.3em; }
+.materi-content h3 { font-size: 1.15em; }
+.materi-content h4 { font-size: 1em; }
+.materi-content p { margin: 0.75em 0; }
+.materi-content ul,
+.materi-content ol { margin: 0.75em 0; padding-left: 1.5em; }
+.materi-content ul { list-style: disc; }
+.materi-content ol { list-style: decimal; }
+.materi-content li { margin: 0.3em 0; }
+.materi-content li::marker { color: var(--blue-600); }
+.materi-content a { color: var(--blue-600); text-decoration: underline; text-underline-offset: 3px; }
+.materi-content strong, .materi-content b { font-weight: 700; color: var(--blue-800); }
+.materi-content img { max-width: 100%; height: auto; border-radius: 12px; margin: 1em 0; }
+.materi-content blockquote { border-left: 4px solid var(--orange); background: var(--orange-100); border-radius: 0 12px 12px 0; padding: 0.6em 1em; color: #7A4A12; margin: 1em 0; }
+.materi-content table { border-collapse: collapse; margin: 1em 0; width: 100%; font-size: 0.95em; }
+.materi-content th,
+.materi-content td { border: 1px solid var(--line); padding: 0.45em 0.7em; text-align: left; }
+.materi-content th { background: var(--blue-bg); font-weight: 700; }
+.materi-content > :first-child { margin-top: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.001ms !important;
+  }
+  html { scroll-behavior: auto; }
+  .glyph { animation: none !important; }
 }

@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
+import { alasanTolak, berandaUntuk } from '@/lib/akses';
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
@@ -38,37 +39,58 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Redirect tetap membawa cookie sesi yang mungkin baru diperbarui.
+  const redirectTo = (target: string) => {
+    const redirect = NextResponse.redirect(new URL(target, request.url));
+    response.cookies.getAll().forEach((cookie) => redirect.cookies.set(cookie));
+    return redirect;
+  };
+
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
+  const rutePrivat = path.startsWith('/siswa') || path.startsWith('/guru') || path.startsWith('/admin');
 
-  // 1. Jika rute privat diakses tanpa login
-  if (!user && (path.startsWith('/siswa') || path.startsWith('/guru'))) {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // 1. Rute privat tanpa login
+  if (!user) {
+    return rutePrivat ? redirectTo('/login') : response;
   }
 
-  // 2. Cek Role jika user terotentikasi
-  if (user) {
-    const { data: profile } = await supabase
-      .from('users')
-      .select('role, status_approval')
-      .eq('id', user.id)
-      .single();
+  // Profil hanya perlu dicek untuk rute privat & halaman login
+  if (!rutePrivat && path !== '/login') {
+    return response;
+  }
 
-    const role = profile?.role ?? 'siswa';
+  // 2. Akun harus terdaftar di public.users dan sudah disetujui admin
+  const { data: profile } = await supabase
+    .from('users')
+    .select('role, status_approval')
+    .eq('id', user.id)
+    .maybeSingle();
 
-    if (path === '/login') {
-      return NextResponse.redirect(
-        new URL(role === 'guru' ? '/guru/koreksi' : '/siswa/materi/1', request.url)
-      );
-    }
+  const alasan = alasanTolak(profile);
+  if (alasan) {
+    // Halaman login menampilkan alasannya lalu mengeluarkan sesi
+    return path === '/login' ? response : redirectTo(`/login?status=${alasan}`);
+  }
 
-    if (path.startsWith('/guru') && role !== 'guru' && role !== 'admin') {
-      return NextResponse.redirect(new URL('/siswa/materi/1', request.url));
-    }
+  // 3. Arahkan sesuai peran
+  const role = profile!.role;
+  const beranda = berandaUntuk(role);
 
-    if (path.startsWith('/siswa') && role === 'guru') {
-      return NextResponse.redirect(new URL('/guru/koreksi', request.url));
-    }
+  if (path === '/login') {
+    return redirectTo(beranda);
+  }
+
+  if (path.startsWith('/guru') && role !== 'guru' && role !== 'admin') {
+    return redirectTo(beranda);
+  }
+
+  if (path.startsWith('/admin') && role !== 'admin') {
+    return redirectTo(beranda);
+  }
+
+  if (path.startsWith('/siswa') && role !== 'siswa') {
+    return redirectTo(beranda);
   }
 
   return response;

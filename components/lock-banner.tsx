@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import { Lock, ArrowRight } from 'lucide-react';
 
 interface LockBannerProps {
   title: string;
@@ -15,62 +16,22 @@ export const LockBanner: React.FC<LockBannerProps> = ({
   actionHref,
 }) => {
   return (
-    <div
-      style={{
-        background: '#FFFBEB',
-        border: '2px solid #F59E0B',
-        borderRadius: '16px',
-        padding: '20px 24px',
-        marginBottom: '24px',
-        boxShadow: '0 4px 15px rgba(245, 158, 11, 0.08)',
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: '16px',
-      }}
-      className="animate-in fade-in duration-200"
-    >
-      <div style={{ fontSize: '32px', lineHeight: 1 }} aria-hidden="true">
-        🔒
+    <div className="relative overflow-hidden mb-6 rounded-2xl border-2 border-[#FBD38D] bg-gradient-to-br from-[#FFFBEB] to-[#FFF1DD] p-5 sm:p-6 flex items-start gap-4 shadow-[0_6px_20px_rgba(240,147,43,0.10)] anim-rise">
+      <span className="absolute -right-3 -bottom-6 text-[96px] font-extrabold text-[#F0932B]/10 select-none" aria-hidden="true">
+        ?
+      </span>
+      <div className="w-11 h-11 rounded-xl bg-white border border-[#FBD38D] flex items-center justify-center shrink-0 shadow-sm">
+        <Lock className="w-5 h-5 text-[#E37A12]" />
       </div>
-      <div style={{ flex: 1 }}>
-        <h3
-          style={{
-            fontSize: '16px',
-            fontWeight: 800,
-            color: '#92400E',
-            margin: '0 0 6px 0',
-          }}
-        >
-          {title}
-        </h3>
-        <div
-          style={{
-            fontSize: '13.5px',
-            color: '#B45309',
-            margin: '0 0 14px 0',
-            lineHeight: 1.6,
-          }}
-        >
-          {description}
-        </div>
+      <div className="flex-1 relative">
+        <h3 className="text-base font-extrabold text-[#92400E] mb-1.5">{title}</h3>
+        <div className="text-[13.5px] text-[#9A5A0B] leading-relaxed mb-4">{description}</div>
         <Link
           href={actionHref}
-          style={{
-            fontSize: '12.5px',
-            padding: '8px 18px',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            background: '#2E7BC4',
-            color: '#ffffff',
-            fontWeight: 600,
-            borderRadius: '10px',
-            textDecoration: 'none',
-            boxShadow: '0 4px 12px rgba(46, 123, 196, 0.25)',
-          }}
-          className="hover:bg-[#1B4E80] transition-colors"
+          className="btn-press inline-flex items-center gap-1.5 text-[13px] px-4 py-2 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)]"
         >
-          {actionText}
+          {actionText.replace(/\s*→\s*$/, '')}
+          <ArrowRight className="w-4 h-4" />
         </Link>
       </div>
     </div>

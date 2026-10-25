@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
+import { alasanTolak, berandaUntuk } from '@/lib/akses';
 
 export default async function HomePage() {
   const supabase = createClient();
@@ -11,13 +12,14 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from('users')
-    .select('role')
+    .select('role, status_approval')
     .eq('id', user.id)
-    .single();
+    .maybeSingle();
 
-  if (profile?.role === 'guru') {
-    redirect('/guru/koreksi');
+  const alasan = alasanTolak(profile);
+  if (alasan) {
+    redirect(`/login?status=${alasan}`);
   }
 
-  redirect('/siswa/materi/1');
+  redirect(berandaUntuk(profile!.role));
 }
