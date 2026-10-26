@@ -29,7 +29,8 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
    materi, admin mengelola pengguna, bucket Storage `materi` (PDF/gambar, maks 10 MB).
 3. `supabase/migrations/20261027_kelas_jadwal_pengumuman_ai.sql`: kelas & anggota, jadwal mengajar, agenda kelas,
    pengumuman, notifikasi, log aktivitas & status online, materi per subbab + terbit/tanggal buka/kelas tujuan,
-   LKPD bertahap, rubrik & saran koreksi AI, catatan guru di evaluasi, dan pendaftaran akun mandiri.
+   LKPD bertahap, rubrik & saran koreksi AI, catatan guru di evaluasi, hasil per soal untuk siswa, dan pendaftaran
+   akun mandiri.
 
 ## Pengaturan Supabase Auth
 
@@ -45,7 +46,9 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
 
 - **Siswa**: Beranda (`/siswa`), Materi (per subbab dengan Sebelumnya/Berikutnya), LKPD, Latihan, Evaluasi, Daftar Nilai,
   Pengumuman, Jadwal, Profil. Urutan per bab: LKPD → Latihan → Evaluasi; tiap tugas sekali kumpul (LKPD bisa diulang
-  bila guru mengizinkan). Nilai akhir muncul setelah divalidasi guru.
+  bila guru mengizinkan). Nilai akhir muncul setelah divalidasi guru. Setelah mengumpulkan, **Hasil per Soal**
+  menandai jawaban pilihan ganda benar/salah; kunci jawaban & contoh jawaban uraian dibuka setelah guru menilai
+  (`tinjau_pengerjaan()`; kunci soal umum yang juga dipakai di bab lain tetap tertutup).
 - **Guru**: Koreksi (Koreksi AI, validasi nilai, izin ulang, hapus pengumpulan), Materi (subbab, terbit, kelas tujuan,
   tanggal buka, unggah PDF/gambar), LKPD (tujuan, petunjuk, tahapan konstruktivis, soal per tahap), Bank Soal (rubrik &
   jawaban ideal untuk koreksi AI), Pengumuman, Jadwal & Agenda, Aktivitas Siswa (online, progres, keluar tab),

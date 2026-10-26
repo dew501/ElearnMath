@@ -74,7 +74,7 @@ export default function KelolaPenggunaPage() {
   const [daftar, setDaftar] = useState<Pengguna[]>([]);
   const [kelas, setKelas] = useState<Kelas[]>([]);
   const [anggota, setAnggota] = useState<{ kelas_id: string; user_id: string; peran: string }[]>([]);
-  const [layanan, setLayanan] = useState(false);
+  const [layanan, setLayanan] = useState<boolean | null>(null);
   const [memuat, setMemuat] = useState(true);
   const [galat, setGalat] = useState<string | null>(null);
   const [cari, setCari] = useState('');
@@ -433,7 +433,7 @@ export default function KelolaPenggunaPage() {
         }}
       />
 
-      <ImporAkun open={impor} onClose={() => { setImpor(false); muat(); }} kelas={kelas} />
+      <ImporAkun open={impor} onClose={() => { setImpor(false); muat(); }} kelas={kelas} layanan={layanan} />
 
       <Modal
         open={akunDibuat !== null}
@@ -466,7 +466,7 @@ function UbahPengguna({
   kelas: Kelas[];
   kelasGuru: string[];
   diriSendiri: boolean;
-  layanan: boolean;
+  layanan: boolean | null;
   onHapus: () => void;
   onToast: (t: string, ok: boolean) => void;
 }) {
@@ -574,7 +574,7 @@ function TambahAkun({
   open: boolean;
   onClose: () => void;
   kelas: Kelas[];
-  layanan: boolean;
+  layanan: boolean | null;
   onSelesai: (info: { email: string; sandi: string; nama: string }) => void;
 }) {
   const supabase = createClient();
@@ -605,7 +605,7 @@ function TambahAkun({
       nomor_induk: f.nomor.trim() || null,
       kelas_id: f.peran === 'siswa' ? f.kelas || null : null,
       kelas_ids: f.peran === 'guru' ? f.kelasGuru : [],
-    });
+    }, { lewatApi: layanan !== false });
     setSibuk(false);
     if (!r.ok) return setGalat(r.pesan);
     onSelesai({ email: f.email.trim().toLowerCase(), sandi: f.sandi, nama: f.nama.trim() });
@@ -680,7 +680,7 @@ function TambahAkun({
             </div>
           </fieldset>
         )}
-        {!layanan && (
+        {layanan === false && (
           <p className="text-[11px] text-[#66748C] bg-[#F4F9FF] border border-[#DCEAF7] rounded-lg px-3 py-2">
             Secret key belum dipasang, jadi akun dibuat lewat pendaftaran biasa lalu otomatis disetujui. Pastikan &ldquo;Enable signup&rdquo; di Supabase menyala.
           </p>
@@ -704,7 +704,7 @@ interface BarisImpor {
   hasil?: 'ok' | string;
 }
 
-function ImporAkun({ open, onClose, kelas }: { open: boolean; onClose: () => void; kelas: Kelas[] }) {
+function ImporAkun({ open, onClose, kelas, layanan }: { open: boolean; onClose: () => void; kelas: Kelas[]; layanan: boolean | null }) {
   const supabase = createClient();
   const [teks, setTeks] = useState('');
   const [baris, setBaris] = useState<BarisImpor[]>([]);
@@ -769,7 +769,7 @@ function ImporAkun({ open, onClose, kelas }: { open: boolean; onClose: () => voi
         nomor_induk: b.nomor || null,
         kelas_id: b.peran === 'siswa' ? b.kelasId : null,
         kelas_ids: b.peran === 'guru' && b.kelasId ? [b.kelasId] : [],
-      });
+      }, { lewatApi: layanan !== false });
       n++;
       setProgres(n);
       setBaris((d) => d.map((x) => (x.baris === b.baris ? { ...x, hasil: r.ok ? 'ok' : r.pesan } : x)));

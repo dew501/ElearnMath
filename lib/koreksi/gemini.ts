@@ -84,7 +84,17 @@ export async function koreksiGemini(
         }),
       });
       if (!r.ok) {
-        alasanGagal = r.status === 429 ? 'Kuota AI gratis sedang habis.' : r.status === 503 ? 'Layanan AI sedang padat.' : `Layanan AI menolak permintaan (${r.status}).`;
+        const isi = await r.text().catch(() => '');
+        if (/API_KEY_INVALID|API key not valid/i.test(isi) || r.status === 401) {
+          // Kunci salah berlaku untuk semua model — tidak perlu mencoba model lain
+          return { ok: false, alasan: 'Kunci API Gemini tidak valid (periksa GEMINI_API_KEY di server).' };
+        }
+        alasanGagal =
+          r.status === 429 ? 'Kuota AI gratis sedang habis.'
+          : r.status === 503 || r.status === 500 ? 'Layanan AI sedang padat.'
+          : r.status === 403 ? 'Kunci API Gemini tidak diizinkan memakai model ini.'
+          : r.status === 404 ? 'Model AI tidak ditemukan (periksa GEMINI_MODELS).'
+          : `Layanan AI menolak permintaan (${r.status}).`;
         continue;
       }
       const j = await r.json();

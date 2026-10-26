@@ -143,14 +143,16 @@ body {
   100% { transform: scale(1); }
 }
 
-.page-enter { animation: rise 0.45s var(--ease-out) both; }
-.anim-rise { animation: rise 0.5s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 70ms); }
-.anim-fade { animation: fade 0.3s ease both; }
-.anim-pop { animation: pop 0.32s var(--ease-out) both; }
-.anim-toast { animation: toast-in 0.35s var(--ease-out) both; }
-.anim-shake { animation: shake 0.45s ease both; }
+/* fill "backwards" (bukan "both"): setelah selesai, transform tidak lagi menempel, sehingga elemen
+   position: fixed di dalamnya (toast, dropdown lonceng) tetap menempel ke layar, bukan ke pembungkus halaman. */
+.page-enter { animation: rise 0.45s var(--ease-out) backwards; }
+.anim-rise { animation: rise 0.5s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+.anim-fade { animation: fade 0.3s ease backwards; }
+.anim-pop { animation: pop 0.32s var(--ease-out) backwards; }
+.anim-toast { animation: toast-in 0.35s var(--ease-out) backwards; }
+.anim-shake { animation: shake 0.45s ease; }
 .anim-pulse { animation: soft-pulse 1.8s ease-out infinite; }
-.anim-chip { animation: chip-in 0.3s var(--ease-out) both; }
+.anim-chip { animation: chip-in 0.3s var(--ease-out) backwards; }
 .anim-draw {
   stroke-dasharray: 60;
   stroke-dashoffset: 60;

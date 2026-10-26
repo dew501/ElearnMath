@@ -30,12 +30,20 @@ export function sandiAcak(): string {
  * Buat akun yang langsung aktif. Jalur utama: API server dengan secret key.
  * Cadangan (secret key belum dipasang): pendaftaran biasa lewat klien sementara, lalu disetujui admin.
  */
-export async function buatAkun(admin: SupabaseClient, a: AkunBaru): Promise<{ ok: true; id: string } | { ok: false; pesan: string }> {
-  const r = await fetch('/api/admin/pengguna', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ aksi: 'buat', ...a }),
-  }).catch(() => null);
+export async function buatAkun(
+  admin: SupabaseClient,
+  a: AkunBaru,
+  opsi: { lewatApi?: boolean } = {}
+): Promise<{ ok: true; id: string } | { ok: false; pesan: string }> {
+  // lewatApi = false bila sudah diketahui secret key belum dipasang (langsung pakai jalur cadangan)
+  const r =
+    opsi.lewatApi === false
+      ? null
+      : await fetch('/api/admin/pengguna', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ aksi: 'buat', ...a }),
+        }).catch(() => null);
   if (r && r.status !== 501) {
     const j = await r.json().catch(() => ({}));
     return r.ok ? { ok: true, id: j.id } : { ok: false, pesan: j.pesan || 'Akun gagal dibuat.' };
