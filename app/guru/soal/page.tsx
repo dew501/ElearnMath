@@ -10,7 +10,8 @@ import { Toast, type ToastData } from '@/components/ui/toast';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { FormSoal, type AwalSoal, type MateriRingkas } from '@/components/form-soal';
 import { JENIS, OPSI, TAHAPAN_BAWAAN, bobotSoal, pesanGalat, teksOpsi, type JenisPengerjaan, type Soal } from '@/lib/pengerjaan';
-import { Plus, PencilLine, Trash2, Inbox, AlertTriangle, CheckCircle2, ListChecks, Sparkles, Layers } from 'lucide-react';
+import { labelFormatFile } from '@/lib/lampiran/tipe';
+import { Plus, PencilLine, Trash2, Inbox, AlertTriangle, CheckCircle2, ListChecks, Sparkles, Layers, Paperclip } from 'lucide-react';
 
 const KATEGORI = Object.keys(JENIS) as JenisPengerjaan[];
 const namaTahap = (k?: string | null) => TAHAPAN_BAWAAN.find((t) => t.kunci === k)?.judul ?? k;
@@ -176,9 +177,14 @@ export default function BankSoalPage() {
                               <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]"><Layers className="w-3 h-3" /> {namaTahap(q.tahap)}</span>
                             )}
                             {q.tipe !== 'pg' && (
-                              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${q.rubrik?.length ? 'bg-[#F3E8FF] text-[#6D28D9]' : q.jawaban_ideal ? 'bg-[#F3E8FF] text-[#7C3AED]' : 'bg-[#F1F5F9] text-[#94A3B8]'}`}>
-                                <Sparkles className="w-3 h-3" /> {q.rubrik?.length ? `Rubrik ${q.rubrik.length} kriteria` : q.jawaban_ideal ? 'Ada jawaban ideal' : 'Belum ada bahan koreksi AI'}
-                              </span>
+                              <>
+                                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${q.rubrik?.length ? 'bg-[#F3E8FF] text-[#6D28D9]' : q.jawaban_ideal ? 'bg-[#F3E8FF] text-[#7C3AED]' : 'bg-[#F1F5F9] text-[#94A3B8]'}`}>
+                                  <Sparkles className="w-3 h-3" /> {q.rubrik?.length ? `Rubrik ${q.rubrik.length} kriteria` : q.jawaban_ideal ? 'Ada jawaban ideal' : 'Belum ada bahan koreksi AI'}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4]" title="Format lampiran berkas/foto yang diterima dari siswa">
+                                  <Paperclip className="w-3 h-3" /> Berkas: {labelFormatFile(q.format_file)}
+                                </span>
+                              </>
                             )}
                           </div>
                           <div className="flex gap-1 shrink-0">

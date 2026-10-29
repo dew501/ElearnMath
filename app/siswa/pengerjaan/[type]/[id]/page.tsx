@@ -9,19 +9,24 @@ import { SiswaNav } from '@/components/siswa-nav';
 import { LockBanner } from '@/components/lock-banner';
 import { PengantarLkpd, KepalaTahap } from '@/components/lkpd-pengantar';
 import { RingkasanTinjau, KartuTinjau, type HasilTinjau } from '@/components/tinjau-soal';
+import { InputLampiranEssay } from '@/components/input-lampiran-essay';
 import { Modal } from '@/components/ui/modal';
 import { ScoreRing } from '@/components/ui/score-ring';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { UUID_RE } from '@/lib/akses';
+import type { LampiranJawaban } from '@/lib/lampiran/tipe';
+import { hapusLampiranStorage } from '@/lib/lampiran/unggah-xhr';
 import {
   JENIS,
-  KOLOM_SOAL_SISWA,
   OPSI,
+  apakahSoalTerjawab,
   bobotSoal,
   formatTanggal,
   isJenis,
+  muatSoalSiswa,
   pesanGalat,
   petaJawaban,
+  petaLampiran,
   tahapanDari,
   teksOpsi,
   urutkanSoal,
@@ -55,6 +60,7 @@ type Fase = 'memuat' | 'galat' | 'tidak-ada' | 'terkunci' | 'form' | 'tinjau' | 
 
 interface KirimanLama {
   jawaban: Record<string, string>;
+  lampiran: Record<string, LampiranJawaban[]>;
   score: number | null;
   feedback: string | null;
   status: string | null;
@@ -68,11 +74,16 @@ const LANJUTAN: Partial<Record<JenisPengerjaan, { jenis: JenisPengerjaan; label:
 };
 
 const kunciDraf = (uid: string, jenis: string, id: string) => `elearnmath:draft:${uid}:${jenis}:${id}`;
-function bacaDraf(key: string): { answers: Record<string, string>; savedAt: number } | null {
+function bacaDraf(key: string): { answers: Record<string, string>; attachments?: Record<string, LampiranJawaban[]>; savedAt: number } | null {
   try {
     const raw = localStorage.getItem(key);
     const d = raw ? JSON.parse(raw) : null;
-    return d && typeof d.answers === 'object' && d.answers ? d : null;
+    if (!d || typeof d.answers !== 'object' || !d.answers) return null;
+    return {
+      answers: d.answers,
+      attachments: petaLampiran({ attachments: d.attachments }),
+      savedAt: Number(d.savedAt || Date.now()),
+    };
   } catch {
     return null;
   }
@@ -97,17 +108,21 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
   const [fase, setFase] = useState<Fase>('memuat');
   const [pesan, setPesan] = useState('');
   const [lockReason, setLockReason] = useState<{ title: string; desc: string; link: string; btn: string } | null>(null);
+  const [userId, setUserId] = useState('');
   const [namaSiswa, setNamaSiswa] = useState('Siswa');
   const [judulMateri, setJudulMateri] = useState('');
   const [muatUlang, setMuatUlang] = useState(0);
   const [draftKey, setDraftKey] = useState<string | null>(null);
 
-  // Soal & Jawaban
+  // Soal, Jawaban Teks & Lampiran Berkas Essay
   const [questions, setQuestions] = useState<Soal[]>([]);
   const [metaLkpd, setMetaLkpd] = useState<MetaLkpd | null>(null);
   const bagianAktif = useRef('Awal lembar');
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [jawabanAwal, setJawabanAwal] = useState<Record<string, string>>({});
+  const [attachments, setAttachments] = useState<Record<string, LampiranJawaban[]>>({});
+  const [lampiranAwal, setLampiranAwal] = useState<Record<string, LampiranJawaban[]>>({});
+  const [sibukLampiran, setSibukLampiran] = useState<Record<string, boolean>>({});
   const [kirimanLama, setKirimanLama] = useState<KirimanLama | null>(null);
   const [tinjau, setTinjau] = useState<{ dinilai: boolean; soal: Record<string, HasilTinjau> } | null>(null);
   const [tinjauGagal, setTinjauGagal] = useState(false);
@@ -139,6 +154,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
         router.push('/login');
         return;
       }
+      setUserId(user.id);
 
       if (!jenis || !UUID_RE.test(id)) {
         setPesan(!jenis ? 'Jenis pengerjaan tidak dikenal.' : 'Materi untuk tugas ini tidak ditemukan.');
@@ -205,7 +221,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
           .limit(1);
         if (error) return gagal(error);
         const r = data?.[0];
-        if (r) lama = { jawaban: petaJawaban(r.file_answers_json), score: r.score, feedback: r.feedback, status: r.status, waktu: r.created_at, bolehUlang: Boolean(r.allow_retake) };
+        if (r) lama = { jawaban: petaJawaban(r.file_answers_json), lampiran: petaLampiran(r.file_answers_json), score: r.score, feedback: r.feedback, status: r.status, waktu: r.created_at, bolehUlang: Boolean(r.allow_retake) };
       } else if (jenis === 'latihan') {
         const { data, error } = await supabase
           .from('pengerjaan_latihan')
@@ -215,7 +231,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
           .limit(1);
         if (error) return gagal(error);
         const r = data?.[0];
-        if (r) lama = { jawaban: petaJawaban(r.answers_json), score: r.score, feedback: r.feedback, status: r.feedback !== null ? 'graded' : null, waktu: r.completed_at, bolehUlang: false };
+        if (r) lama = { jawaban: petaJawaban(r.answers_json), lampiran: petaLampiran(r.answers_json), score: r.score, feedback: r.feedback, status: r.feedback !== null ? 'graded' : null, waktu: r.completed_at, bolehUlang: false };
       } else {
         const { data, error } = await supabase
           .from('pengerjaan_evaluasi')
@@ -225,19 +241,13 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
           .limit(1);
         if (error) return gagal(error);
         const r = data?.[0];
-        if (r) lama = { jawaban: petaJawaban(r.answers_json), score: r.score, feedback: r.dinilai_at ? r.feedback : null, status: r.dinilai_at ? 'graded' : null, waktu: r.completed_at, bolehUlang: false };
+        if (r) lama = { jawaban: petaJawaban(r.answers_json), lampiran: petaLampiran(r.answers_json), score: r.score, feedback: r.dinilai_at ? r.feedback : null, status: r.dinilai_at ? 'graded' : null, waktu: r.completed_at, bolehUlang: false };
       }
       if (batal) return;
 
       // 3. Muat Bank Soal (tanpa kunci jawaban) + struktur LKPD bertahap
       const [{ data: soal, error: soalError }, metaRes] = await Promise.all([
-        supabase
-          .from('questions')
-          .select(KOLOM_SOAL_SISWA + ', id_materi')
-          .eq('category', jenis)
-          .or(`id_materi.is.null,id_materi.eq.${id}`)
-          .order('id_materi', { ascending: true, nullsFirst: true })
-          .order('urutan', { ascending: true }),
+        muatSoalSiswa(supabase, jenis, id),
         jenis === 'lkpd' ? supabase.from('lkpd').select('judul, tujuan, petunjuk, tahapan').eq('id_materi', id).maybeSingle() : Promise.resolve({ data: null }),
       ]);
       if (batal) return;
@@ -269,12 +279,15 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
         return;
       }
 
-      // Jawaban awal: jawaban lama (jika boleh ulang) ditimpa draf yang tersimpan di peramban.
+      // Jawaban & lampiran awal: jawaban lama (jika boleh ulang) ditimpa draf yang tersimpan di peramban.
       const awal = lama?.bolehUlang ? lama.jawaban : {};
+      const awalLampiran = lama?.bolehUlang ? lama.lampiran : {};
       const draf = bacaDraf(key);
       setMengulang(Boolean(lama?.bolehUlang));
       setJawabanAwal(awal);
+      setLampiranAwal(awalLampiran);
       setAnswers(draf ? { ...awal, ...draf.answers } : awal);
+      setAttachments(draf?.attachments ? { ...awalLampiran, ...draf.attachments } : awalLampiran);
       setDrafPulih(draf ? draf.savedAt : null);
       setTersimpanPada(draf ? draf.savedAt : null);
       setFase('form');
@@ -286,33 +299,43 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
     };
   }, [jenis, id, router, supabase, muatUlang]);
 
-  // Simpan draf otomatis di peramban (agar jawaban tidak hilang saat refresh / tab tertutup)
+  // Simpan draf otomatis di peramban (termasuk metadata lampiran yang sudah terunggah)
   useEffect(() => {
     if (fase !== 'form' || !draftKey) return;
     const t = setTimeout(() => {
-      if (!Object.values(answers).some((v) => v.trim())) return;
+      const adaIsiTeks = Object.values(answers).some((v) => v.trim());
+      const adaIsiLampiran = Object.values(attachments).some((arr) => arr.length > 0);
+      if (!adaIsiTeks && !adaIsiLampiran) return;
       try {
         const now = Date.now();
-        localStorage.setItem(draftKey, JSON.stringify({ answers, savedAt: now }));
+        localStorage.setItem(draftKey, JSON.stringify({ answers, attachments, savedAt: now }));
         setTersimpanPada(now);
       } catch {
         /* penyimpanan peramban penuh / dinonaktifkan */
       }
     }, 600);
     return () => clearTimeout(t);
-  }, [answers, fase, draftKey]);
+  }, [answers, attachments, fase, draftKey]);
 
-  // Simpan seketika saat halaman ditutup / ditinggal, agar ketikan terakhir (sebelum jeda 600 ms) tidak hilang.
+  // Simpan seketika saat halaman ditutup / ditinggal, agar ketikan & lampiran terakhir tidak hilang.
   const jawabanRef = useRef(answers);
   jawabanRef.current = answers;
+  const lampiranRef = useRef(attachments);
+  lampiranRef.current = attachments;
   const bolehSimpanDraf = useRef(false);
   useEffect(() => {
     bolehSimpanDraf.current = fase === 'form';
     if (fase !== 'form' || !draftKey) return;
     const simpanSekarang = () => {
-      if (!bolehSimpanDraf.current || !Object.values(jawabanRef.current).some((v) => v.trim())) return;
+      if (!bolehSimpanDraf.current) return;
+      const adaTeks = Object.values(jawabanRef.current).some((v) => v.trim());
+      const adaLampiran = Object.values(lampiranRef.current).some((arr) => arr.length > 0);
+      if (!adaTeks && !adaLampiran) return;
       try {
-        localStorage.setItem(draftKey, JSON.stringify({ answers: jawabanRef.current, savedAt: Date.now() }));
+        localStorage.setItem(
+          draftKey,
+          JSON.stringify({ answers: jawabanRef.current, attachments: lampiranRef.current, savedAt: Date.now() })
+        );
       } catch {
         /* penyimpanan peramban tidak tersedia */
       }
@@ -365,7 +388,22 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
     setAnswers((prev) => ({ ...prev, [questionId]: val }));
   };
 
-  const kosong = questions.filter((q) => !(answers[q.id] ?? '').trim());
+  const handleChangeLampiran = (questionId: string, daftar: LampiranJawaban[]) => {
+    setAttachments((prev) => ({ ...prev, [questionId]: daftar }));
+  };
+
+  const handleSibukLampiran = (questionId: string, sibuk: boolean) => {
+    setSibukLampiran((prev) => (prev[questionId] === sibuk ? prev : { ...prev, [questionId]: sibuk }));
+  };
+
+  const pathAwalSet = React.useMemo(() => {
+    const s = new Set<string>();
+    Object.values(lampiranAwal).forEach((arr) => arr.forEach((l) => s.add(l.path)));
+    return s;
+  }, [lampiranAwal]);
+
+  const adaLampiranSibuk = Object.values(sibukLampiran).some(Boolean);
+  const kosong = questions.filter((q) => !apakahSoalTerjawab(q, answers[q.id], attachments[q.id]));
   const terjawab = questions.length - kosong.length;
   const maksTotal = questions.reduce((s, q) => s + bobotSoal(q), 0) || 100;
   const maksPg = questions.filter((q) => q.tipe === 'pg').reduce((s, q) => s + bobotSoal(q), 0);
@@ -396,6 +434,10 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitError(null);
+    if (adaLampiranSibuk) {
+      setSubmitError('Tunggu hingga proses auto-kompresi dan unggah berkas selesai (100%) sebelum mengumpulkan jawaban.');
+      return;
+    }
     if (kosong.length) {
       setTandaiKosong(true);
       const el = document.getElementById(`soal-${kosong[0].id}`);
@@ -410,20 +452,58 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
     if (!jenis) return;
     setSubmitting(true);
     try {
+      const lampiranBersih = Object.fromEntries(
+        Object.entries(attachments).filter(([, daftar]) => Array.isArray(daftar) && daftar.length > 0)
+      );
+      const adaLampiran = Object.keys(lampiranBersih).length > 0;
+
       // Skor pilihan ganda dihitung di database (kunci jawaban tidak dikirim ke browser)
-      const { data, error } = await supabase.rpc('kumpulkan_pengerjaan', {
+      let res = await supabase.rpc('kumpulkan_pengerjaan', {
         p_jenis: jenis,
         p_id_materi: id,
         p_jawaban: answers,
+        p_lampiran: lampiranBersih,
       });
-      if (error) {
+
+      // Fallback kompatibilitas bila migrasi 20261029 belum dijalankan dan siswa hanya mengirim jawaban teks/PG
+      if (
+        res.error &&
+        (res.error.code === 'PGRST202' || /could not find the function/i.test(res.error.message || '')) &&
+        !adaLampiran
+      ) {
+        res = await supabase.rpc('kumpulkan_pengerjaan', {
+          p_jenis: jenis,
+          p_id_materi: id,
+          p_jawaban: answers,
+        });
+      }
+
+      if (res.error) {
         setKonfirmasi(false);
-        setSubmitError(pesanGalat(error));
+        if (
+          adaLampiran &&
+          (res.error.code === 'PGRST202' || /could not find the function/i.test(res.error.message || ''))
+        ) {
+          setSubmitError(
+            'Penyimpanan lampiran essay belum diaktifkan di database: jalankan migrasi 20261029_lampiran_essay_dan_deteksi_ai.sql terlebih dahulu.'
+          );
+        } else {
+          setSubmitError(pesanGalat(res.error));
+        }
         return;
       }
+
+      // Saat pengerjaan ulang selesai, bersihkan berkas lama yang sudah diganti/dihapus siswa agar hemat storage
+      const pathTerkumpul = new Set<string>();
+      Object.values(lampiranBersih).forEach((arr) => arr.forEach((l) => pathTerkumpul.add(l.path)));
+      const pathUsang = Array.from(pathAwalSet).filter((p) => !pathTerkumpul.has(p));
+      if (pathUsang.length) {
+        hapusLampiranStorage(supabase, pathUsang).catch(() => {});
+      }
+
       bolehSimpanDraf.current = false;
       hapusDraf(draftKey);
-      setHasil({ skor: Number(data?.skor_pg ?? 0), maks: Number(data?.maks_pg ?? 0) });
+      setHasil({ skor: Number(res.data?.skor_pg ?? 0), maks: Number(res.data?.maks_pg ?? 0) });
       setKonfirmasi(false);
       setFase('selesai');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -436,8 +516,16 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
   };
 
   const mulaiDariAwal = () => {
+    const pathBaruSesi = Object.values(attachments)
+      .flat()
+      .map((l) => l.path)
+      .filter((p) => !pathAwalSet.has(p));
+    if (pathBaruSesi.length) {
+      hapusLampiranStorage(supabase, pathBaruSesi).catch(() => {});
+    }
     hapusDraf(draftKey);
     setAnswers(jawabanAwal);
+    setAttachments(lampiranAwal);
     setDrafPulih(null);
     setTersimpanPada(null);
   };
@@ -648,7 +736,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               )}
             </div>
 
-            <RingkasanTinjau soal={questions} jawaban={kirimanLama.jawaban} hasil={tinjau?.soal ?? {}} dinilai={dinilaiTinjau} gagal={tinjauGagal} />
+            <RingkasanTinjau soal={questions} jawaban={kirimanLama.jawaban} lampiran={kirimanLama.lampiran} hasil={tinjau?.soal ?? {}} dinilai={dinilaiTinjau} gagal={tinjauGagal} />
 
             {kelompok.map((g) => (
               <section key={g.kunci} className="space-y-5" aria-label={g.judul ?? 'Soal'}>
@@ -659,7 +747,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                   </h2>
                 )}
                 {g.soal.map((q) => (
-                  <KartuTinjau key={q.id} q={q} nomor={nomorSoal.get(q.id) ?? 1} jawaban={kirimanLama.jawaban[q.id]} hasil={tinjau?.soal[q.id]} dinilai={dinilaiTinjau} />
+                  <KartuTinjau key={q.id} q={q} nomor={nomorSoal.get(q.id) ?? 1} jawaban={kirimanLama.jawaban[q.id]} lampiranSoal={kirimanLama.lampiran[q.id]} hasil={tinjau?.soal[q.id]} dinilai={dinilaiTinjau} />
                 ))}
               </section>
             ))}
@@ -686,7 +774,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               {bertahap && (
                 <nav aria-label="Tahapan kegiatan" className="mt-5 flex flex-wrap gap-2">
                   {kelompok.map((g, gi) => {
-                    const lengkap = g.soal.every((q) => (answers[q.id] ?? '').trim());
+                    const lengkap = g.soal.every((q) => apakahSoalTerjawab(q, answers[q.id], attachments[q.id]));
                     return (
                       <a key={g.kunci} href={`#tahap-${g.kunci}`} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors ${lengkap ? 'bg-[#E4F8EE] border-[#BBF7D0] text-[#15885A]' : 'bg-white border-[#DCEAF7] text-[#1B4E80] hover:border-[#2E7BC4]'}`}>
                         {lengkap ? <Check className="w-3 h-3" strokeWidth={3} /> : <span className="tabular">{gi + 1}.</span>} {g.judul}
@@ -721,13 +809,13 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                     {g.kunci.startsWith('_') ? (
                       <h2 className="text-lg font-extrabold text-[#1B4E80]">{g.judul}</h2>
                     ) : (
-                      <KepalaTahap nomor={tahapAsli.findIndex((t) => t.kunci === g.kunci) + 1} total={tahapAsli.length} judul={g.judul} instruksi={g.instruksi} selesai={g.soal.every((q) => (answers[q.id] ?? '').trim())} />
+                      <KepalaTahap nomor={tahapAsli.findIndex((t) => t.kunci === g.kunci) + 1} total={tahapAsli.length} judul={g.judul} instruksi={g.instruksi} selesai={g.soal.every((q) => apakahSoalTerjawab(q, answers[q.id], attachments[q.id]))} />
                     )}
                   </div>
                 )}
             {g.soal.map((q) => {
               const idx = (nomorSoal.get(q.id) ?? 1) - 1;
-              const dijawab = Boolean((answers[q.id] ?? '').trim());
+              const dijawab = apakahSoalTerjawab(q, answers[q.id], attachments[q.id]);
               const sorot = tandaiKosong && !dijawab;
               const tandaiBagian = () => (bagianAktif.current = `${g.judul && !g.kunci.startsWith('_') ? `Tahap ${g.judul} · ` : ''}Soal ${idx + 1}`);
               return (
@@ -801,17 +889,32 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                       })}
                     </div>
                   ) : (
-                    /* Input Jawaban Essay */
+                    /* Input Jawaban Essay (Teks dan/atau Foto Kamera / Berkas Terkompresi) */
                     <div>
                       <textarea
                         rows={5}
                         aria-label={`Jawaban uraian soal ${idx + 1}`}
                         value={answers[q.id] || ''}
                         onChange={(e) => handleSelectAnswer(q.id, e.target.value)}
-                        placeholder="Ketikkan uraian langkah perhitungan dan penjelasan Anda di sini..."
+                        placeholder="Ketikkan uraian langkah perhitungan di sini, atau lampirkan foto/berkas jawaban di bawah (cukup salah satu atau keduanya)..."
                         className="w-full p-4 rounded-xl border-2 border-[#E6EEF7] bg-white/90 text-sm text-[#1F2A37] leading-relaxed focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all resize-y"
                       />
                       <div className="text-[11px] text-[#94A3B8] text-right mt-1 tabular">{(answers[q.id] || '').length} karakter</div>
+                      {jenis && userId && (
+                        <InputLampiranEssay
+                          supabase={supabase}
+                          uid={userId}
+                          jenis={jenis}
+                          idMateri={id}
+                          idSoal={q.id}
+                          nomorSoal={idx + 1}
+                          formatFile={q.format_file}
+                          lampiran={attachments[q.id] || []}
+                          pathAwalLama={pathAwalSet}
+                          onChange={(daftar) => handleChangeLampiran(q.id, daftar)}
+                          onSibukChange={(sibuk) => handleSibukLampiran(q.id, sibuk)}
+                        />
+                      )}
                     </div>
                   )}
                 </fieldset>

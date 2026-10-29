@@ -1,5 +1,7 @@
 import React from 'react';
-import { OPSI, teksOpsi, type Soal } from '@/lib/pengerjaan';
+import { OPSI, apakahSoalTerjawab, teksOpsi, type Soal } from '@/lib/pengerjaan';
+import type { LampiranJawaban } from '@/lib/lampiran/tipe';
+import { DaftarLampiran } from '@/components/daftar-lampiran';
 import { CheckCircle2, XCircle, MinusCircle, Clock, Lightbulb, Check, Info } from 'lucide-react';
 
 /** Hasil per soal dari fungsi database tinjau_pengerjaan (kunci & pembahasan hanya bila sudah dibuka). */
@@ -11,8 +13,13 @@ export interface HasilTinjau {
 
 type Status = 'benar' | 'salah' | 'kosong' | 'uraian' | 'tanpa-kunci';
 
-export function statusSoal(q: Soal, jawaban: string | undefined, h: HasilTinjau | undefined): Status {
-  if (!(jawaban ?? '').trim()) return 'kosong';
+export function statusSoal(
+  q: Soal,
+  jawaban: string | undefined,
+  h: HasilTinjau | undefined,
+  lampiranSoal?: LampiranJawaban[]
+): Status {
+  if (!apakahSoalTerjawab(q, jawaban, lampiranSoal)) return 'kosong';
   if (q.tipe !== 'pg') return 'uraian';
   if (h?.benar === true) return 'benar';
   if (h?.benar === false) return 'salah';
@@ -39,17 +46,19 @@ const LABEL_STATUS: Record<Status, string> = {
 export function RingkasanTinjau({
   soal,
   jawaban,
+  lampiran,
   hasil,
   dinilai,
   gagal,
 }: {
   soal: Soal[];
   jawaban: Record<string, string>;
+  lampiran?: Record<string, LampiranJawaban[]>;
   hasil: Record<string, HasilTinjau>;
   dinilai: boolean;
   gagal: boolean;
 }) {
-  const status = soal.map((q) => statusSoal(q, jawaban[q.id], hasil[q.id]));
+  const status = soal.map((q) => statusSoal(q, jawaban[q.id], hasil[q.id], lampiran?.[q.id]));
   const hitung = (s: Status) => status.filter((x) => x === s).length;
   const pg = soal.filter((q) => q.tipe === 'pg').length;
   const uraian = soal.length - pg;
@@ -121,16 +130,18 @@ export function KartuTinjau({
   q,
   nomor,
   jawaban,
+  lampiranSoal,
   hasil,
   dinilai,
 }: {
   q: Soal;
   nomor: number;
   jawaban: string | undefined;
+  lampiranSoal?: LampiranJawaban[];
   hasil: HasilTinjau | undefined;
   dinilai: boolean;
 }) {
-  const status = statusSoal(q, jawaban, hasil);
+  const status = statusSoal(q, jawaban, hasil, lampiranSoal);
   const pil = PIL_STATUS[status] ?? (q.tipe === 'pg' ? null : dinilai ? { teks: 'Dinilai guru', kelas: 'bg-[#EAF6FF] text-[#2E7BC4]', ikon: CheckCircle2 } : { teks: 'Menunggu koreksi guru', kelas: 'bg-[#FFF1DD] text-[#B45309]', ikon: Clock });
   const pilihan = (jawaban ?? '').trim().toUpperCase();
   const kunci = hasil?.kunci?.toUpperCase() ?? null;
@@ -203,8 +214,17 @@ export function KartuTinjau({
         <div className="space-y-3">
           <div className="text-sm p-3.5 rounded-xl bg-white/90 border border-[#DCEAF7] text-[#1F2A37] whitespace-pre-wrap leading-relaxed">
             <span className="text-[11px] font-bold text-[#66748C] uppercase tracking-wide block mb-1">Jawaban Anda</span>
-            {jawaban?.trim() ? jawaban : <span className="italic text-[#94A3B8]">Tidak dijawab</span>}
+            {jawaban?.trim() ? (
+              jawaban
+            ) : lampiranSoal?.length ? (
+              <span className="italic text-[#4B5A70]">Jawaban dikirimkan melalui foto/berkas lampiran di bawah ({lampiranSoal.length} berkas).</span>
+            ) : (
+              <span className="italic text-[#94A3B8]">Tidak dijawab</span>
+            )}
           </div>
+          {lampiranSoal && lampiranSoal.length > 0 && (
+            <DaftarLampiran lampiran={lampiranSoal} mode="siswa" />
+          )}
           {hasil?.pembahasan && (
             <div className="text-sm p-3.5 rounded-xl bg-[#F0FBF5] border border-[#BBF7D0] text-[#14532D] whitespace-pre-wrap leading-relaxed">
               <span className="text-[11px] font-bold text-[#15885A] uppercase tracking-wide mb-1 flex items-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> Contoh jawaban dari guru</span>

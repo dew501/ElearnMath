@@ -9,8 +9,12 @@ import { Modal } from '@/components/ui/modal';
 import { Toast, type ToastData } from '@/components/ui/toast';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { PanelAi, type SaranAi } from '@/components/panel-ai';
+import { DaftarLampiran } from '@/components/daftar-lampiran';
 import { kemiripan, layakDibandingkan } from '@/lib/koreksi/kemiripan';
 import { useProfil } from '@/lib/use-profil';
+import type { HasilForensikAi, LampiranJawaban, TingkatIndikasiAi } from '@/lib/lampiran/tipe';
+import { pindaiForensikTeks } from '@/lib/lampiran/deteksi-ai';
+import { hapusLampiranStorage } from '@/lib/lampiran/unggah-xhr';
 import {
   JENIS,
   TAHAPAN_BAWAAN,
@@ -19,17 +23,19 @@ import {
   isJenis,
   pesanGalat,
   petaJawaban,
+  petaLampiran,
   teksOpsi,
   type JenisPengerjaan,
   type Soal,
 } from '@/lib/pengerjaan';
-import { Save, Award, Search, AlertTriangle, ChevronRight, X, Inbox, RotateCcw, Trash2, Sparkles, Eye, Copy, ShieldCheck, Square } from 'lucide-react';
+import { Save, Award, Search, AlertTriangle, ChevronRight, X, Inbox, RotateCcw, Trash2, Sparkles, Eye, Copy, ShieldCheck, ShieldAlert, Square, Paperclip, Fingerprint } from 'lucide-react';
 
 interface Submission {
   id: string;
   id_siswa: string;
   id_materi: string | null;
   jawaban: Record<string, string>;
+  lampiran: Record<string, LampiranJawaban[]>;
   status: string | null;
   score: number | null;
   feedback: string | null;
@@ -50,11 +56,13 @@ const SISWA = 'siswa:id_siswa(full_name, class_name, email)';
 const MATERI = 'materi:id_materi(title, chapter_number)';
 
 function normalisasi(row: any, jenis: JenisPengerjaan): Submission {
+  const muatan = jenis === 'lkpd' ? row.file_answers_json : row.answers_json;
   return {
     id: row.id,
     id_siswa: row.id_siswa,
     id_materi: row.id_materi ?? null,
-    jawaban: petaJawaban(jenis === 'lkpd' ? row.file_answers_json : row.answers_json),
+    jawaban: petaJawaban(muatan),
+    lampiran: petaLampiran(muatan),
     status: row.status ?? null,
     score: row.score ?? null,
     feedback: row.feedback ?? null,
@@ -64,6 +72,73 @@ function normalisasi(row: any, jenis: JenisPengerjaan): Submission {
     siswa: row.siswa ?? null,
     materi: row.materi ?? null,
   };
+}
+
+interface RingkasanForensikSub {
+  jumlahBerkas: number;
+  tingkatTertinggi: TingkatIndikasiAi;
+  skorTertinggi: number;
+  totalUnicode: number;
+  temuan: Array<{
+    label: string;
+    sublabel: string;
+    hasil: HasilForensikAi;
+  }>;
+}
+
+const URUT_TINGKAT: Record<TingkatIndikasiAi, number> = { rendah: 0, sedang: 1, tinggi: 2 };
+
+function ringkasForensikSubmission(sub: Submission, daftarSoal: Soal[]): RingkasanForensikSub {
+  const petaSoal = new Map(daftarSoal.map((q, i) => [q.id, q.urutan || i + 1]));
+  let jumlahBerkas = 0;
+  let tingkatTertinggi: TingkatIndikasiAi = 'rendah';
+  let skorTertinggi = 0;
+  let totalUnicode = 0;
+  const temuan: RingkasanForensikSub['temuan'] = [];
+
+  for (const [idSoal, berkasList] of Object.entries(sub.lampiran)) {
+    const no = petaSoal.get(idSoal);
+    const labelSoal = no ? `Soal #${no}` : 'Lampiran Soal';
+    for (const b of berkasList) {
+      jumlahBerkas++;
+      const scan: HasilForensikAi = b.ai_scan ?? {
+        tingkat: 'rendah',
+        skor_risiko: 0,
+        ringkasan: 'Tidak ditemukan watermark Unicode maupun tanda generator AI pada metadata berkas.',
+        unicode_total: 0,
+        temuan_unicode: [],
+        temuan_metadata: [],
+        dipindai_pada: b.uploaded_at || new Date().toISOString(),
+      };
+      if (URUT_TINGKAT[scan.tingkat] > URUT_TINGKAT[tingkatTertinggi]) tingkatTertinggi = scan.tingkat;
+      if (scan.skor_risiko > skorTertinggi) skorTertinggi = scan.skor_risiko;
+      totalUnicode += scan.unicode_total || 0;
+      temuan.push({
+        label: `${labelSoal} — Berkas: ${b.original_name || b.name}`,
+        sublabel: b.source === 'camera' ? 'Foto Kamera Web' : 'Berkas Unggahan',
+        hasil: scan,
+      });
+    }
+  }
+
+  for (const q of daftarSoal) {
+    if (q.tipe === 'pg') continue;
+    const teks = (sub.jawaban[q.id] ?? '').trim();
+    if (!teks) continue;
+    const scanTeks = pindaiForensikTeks(teks, `Teks Ketikan Soal #${q.urutan || 1}`);
+    if (scanTeks.unicode_total > 0 || scanTeks.tingkat !== 'rendah') {
+      if (URUT_TINGKAT[scanTeks.tingkat] > URUT_TINGKAT[tingkatTertinggi]) tingkatTertinggi = scanTeks.tingkat;
+      if (scanTeks.skor_risiko > skorTertinggi) skorTertinggi = scanTeks.skor_risiko;
+      totalUnicode += scanTeks.unicode_total;
+      temuan.push({
+        label: `Soal #${q.urutan || 1} — Teks Jawaban Ketikan`,
+        sublabel: `${teks.length} karakter`,
+        hasil: scanTeks,
+      });
+    }
+  }
+
+  return { jumlahBerkas, tingkatTertinggi, skorTertinggi, totalUnicode, temuan };
 }
 
 const namaSiswa = (s: Submission) => s.siswa?.full_name || s.siswa?.email || 'Siswa';
@@ -113,6 +188,7 @@ export default function GuruKoreksiPage() {
   const [aiMemuat, setAiMemuat] = useState<string | null>(null);
   const [aiGalat, setAiGalat] = useState<string | null>(null);
   const [massal, setMassal] = useState<{ selesai: number; total: number } | null>(null);
+  const [bukaPopupForensik, setBukaPopupForensik] = useState(false);
   const hentiMassal = useRef(false);
 
   // Tautan dari notifikasi: /guru/koreksi?jenis=lkpd&id=...
@@ -299,6 +375,10 @@ export default function GuruKoreksiPage() {
 
   const saranTerpilih = selectedSub ? saran[selectedSub.id] ?? null : null;
   const adaUraian = soalTerpilih.some((q) => q.tipe !== 'pg');
+  const forensikTerpilih = useMemo(
+    () => (selectedSub ? ringkasForensikSubmission(selectedSub, soalTerpilih) : null),
+    [selectedSub, soalTerpilih]
+  );
 
   const mintaKoreksiAi = async (sub: Submission): Promise<boolean> => {
     const r = await fetch('/api/koreksi-ai', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ jenis: activeTab, id: sub.id }) }).catch(() => null);
@@ -392,6 +472,10 @@ export default function GuruKoreksiPage() {
 
   const hapusPengumpulan = async () => {
     if (!hapusTarget) return;
+    const pathLampiranHapus = Object.values(hapusTarget.lampiran)
+      .flat()
+      .map((l) => l.path)
+      .filter(Boolean);
     setMenghapus(true);
     const { data, error } = await supabase.from(TABEL[activeTab]).delete().eq('id', hapusTarget.id).select('id');
     setMenghapus(false);
@@ -399,6 +483,9 @@ export default function GuruKoreksiPage() {
       setHapusTarget(null);
       setToast({ id: Date.now(), tone: 'error', text: error ? `Gagal menghapus. ${pesanGalat(error)}` : 'Gagal menghapus: akun Anda tidak memiliki izin.' });
       return;
+    }
+    if (pathLampiranHapus.length) {
+      hapusLampiranStorage(supabase, pathLampiranHapus).catch(() => {});
     }
     const sisa = submissions.filter((s) => s.id !== hapusTarget.id);
     setSubmissions(sisa);
@@ -528,6 +615,7 @@ export default function GuruKoreksiPage() {
                   const isSelected = selectedSub?.id === sub.id;
                   const st = statusItem(sub);
                   const s = saran[sub.id];
+                  const fSub = ringkasForensikSubmission(sub, soal);
                   return (
                     <button
                       type="button"
@@ -550,6 +638,20 @@ export default function GuruKoreksiPage() {
                       <div className="flex justify-between items-center text-[10px] mt-2.5 gap-1">
                         <span className="flex items-center gap-1 flex-wrap">
                           <span className={`font-bold px-2 py-0.5 rounded-full ${st.kelas}`}>{st.teks}</span>
+                          {fSub.jumlahBerkas > 0 && (
+                            <span className="font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4] inline-flex items-center gap-0.5">
+                              <Paperclip className="w-2.5 h-2.5" /> {fSub.jumlahBerkas}
+                            </span>
+                          )}
+                          {fSub.tingkatTertinggi !== 'rendah' && (
+                            <span
+                              className={`font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 ${
+                                fSub.tingkatTertinggi === 'tinggi' ? 'bg-[#FDEAE7] text-[#C2412E]' : 'bg-[#FFF1DD] text-[#B45309]'
+                              }`}
+                            >
+                              <Fingerprint className="w-2.5 h-2.5" /> AI
+                            </span>
+                          )}
                           {s && s.status === 'saran' && !sudahDinilai(sub, activeTab) && (
                             <span className="font-bold px-2 py-0.5 rounded-full bg-[#EDE9FE] text-[#6D28D9] inline-flex items-center gap-0.5"><Sparkles className="w-3 h-3" /> AI {s.hasil.nilai_100}</span>
                           )}
@@ -584,6 +686,27 @@ export default function GuruKoreksiPage() {
                       )}
                       {sudahDinilai(selectedSub, activeTab) && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]"><ShieldCheck className="w-3 h-3" /> Nilai sudah diterbitkan</span>
+                      )}
+                      {forensikTerpilih && (forensikTerpilih.jumlahBerkas > 0 || adaUraian) && (
+                        <button
+                          type="button"
+                          onClick={() => setBukaPopupForensik(true)}
+                          className={`btn-press inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                            forensikTerpilih.tingkatTertinggi === 'tinggi'
+                              ? 'bg-[#FDEAE7] text-[#C2412E] border-[#FECACA]'
+                              : forensikTerpilih.tingkatTertinggi === 'sedang'
+                              ? 'bg-[#FFF1DD] text-[#B45309] border-[#FBD38D]'
+                              : 'bg-[#EAF6FF] text-[#1B4E80] border-[#BFDBFE]'
+                          }`}
+                        >
+                          <Fingerprint className="w-3 h-3" />
+                          {forensikTerpilih.tingkatTertinggi === 'tinggi'
+                            ? `Indikasi AI Tinggi (${forensikTerpilih.skorTertinggi}/100)`
+                            : forensikTerpilih.tingkatTertinggi === 'sedang'
+                            ? `Periksa Watermark/Metadata (${forensikTerpilih.skorTertinggi}/100)`
+                            : `Forensik AI & Watermark Bersih`}
+                          <span className="underline ml-0.5">Buka Popup</span>
+                        </button>
                       )}
                     </div>
                   </div>
@@ -640,15 +763,26 @@ export default function GuruKoreksiPage() {
                             <div className="text-[#66748C]">Kunci: {q.kunci_jawaban ? `${q.kunci_jawaban.toUpperCase()}. ${teksOpsi(q, q.kunci_jawaban) ?? ''}` : '-'}</div>
                           </div>
                         ) : (
-                          <>
-                            <div className="text-xs p-3 rounded-lg bg-gray-50 border border-gray-100 text-[#1F2A37] leading-relaxed whitespace-pre-wrap">{jwb || 'Siswa tidak menjawab soal ini.'}</div>
+                          <div className="space-y-2.5">
+                            <div className="text-xs p-3 rounded-lg bg-gray-50 border border-gray-100 text-[#1F2A37] leading-relaxed whitespace-pre-wrap">
+                              {jwb?.trim()
+                                ? jwb
+                                : selectedSub.lampiran[q.id]?.length
+                                ? `Siswa menjawab melalui lampiran foto/berkas di bawah (${selectedSub.lampiran[q.id].length} berkas).`
+                                : 'Siswa tidak menjawab soal ini.'}
+                            </div>
+                            <DaftarLampiran
+                              lampiran={selectedSub.lampiran[q.id] || []}
+                              teksJawaban={jwb}
+                              mode="guru"
+                            />
                             {ai && (
-                              <div className="mt-2 text-[11px] p-2.5 rounded-lg bg-[#FAF7FF] border border-[#EDE9FE] text-[#4C1D95] flex gap-2">
+                              <div className="text-[11px] p-2.5 rounded-lg bg-[#FAF7FF] border border-[#EDE9FE] text-[#4C1D95] flex gap-2">
                                 <span className="font-extrabold tabular shrink-0">AI {ai.skor}/{ai.maks}</span>
                                 <span className="leading-relaxed">{ai.alasan}</span>
                               </div>
                             )}
-                          </>
+                          </div>
                         )}
                       </div>
                     );
@@ -775,6 +909,111 @@ export default function GuruKoreksiPage() {
         }
       >
         Jawaban {JENIS[activeTab].singkat} milik <strong>{hapusTarget ? namaSiswa(hapusTarget) : ''}</strong> beserta nilainya akan dihapus permanen. Siswa bisa mengerjakan tugas ini lagi dari awal.
+      </Modal>
+
+      <Modal
+        open={bukaPopupForensik && selectedSub !== null && forensikTerpilih !== null}
+        lebar="lg"
+        onClose={() => setBukaPopupForensik(false)}
+        title={`Forensik AI & Watermark — ${selectedSub ? namaSiswa(selectedSub) : ''}`}
+        actions={
+          <button
+            type="button"
+            onClick={() => setBukaPopupForensik(false)}
+            className="btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm"
+          >
+            Tutup
+          </button>
+        }
+      >
+        {forensikTerpilih && (
+          <div className="space-y-4 text-[#1F2A37]">
+            <div
+              className={`p-4 rounded-2xl border space-y-1 ${
+                forensikTerpilih.tingkatTertinggi === 'tinggi'
+                  ? 'bg-[#FDEAE7]/70 border-[#FECACA] text-[#991B1B]'
+                  : forensikTerpilih.tingkatTertinggi === 'sedang'
+                  ? 'bg-[#FFF8EC] border-[#FBD38D] text-[#92400E]'
+                  : 'bg-[#F0FBF5] border-[#BBF7D0] text-[#14532D]'
+              }`}
+            >
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="text-xs font-extrabold uppercase tracking-wider flex items-center gap-1.5">
+                  {forensikTerpilih.tingkatTertinggi === 'tinggi' ? (
+                    <ShieldAlert className="w-4 h-4" />
+                  ) : forensikTerpilih.tingkatTertinggi === 'sedang' ? (
+                    <AlertTriangle className="w-4 h-4" />
+                  ) : (
+                    <ShieldCheck className="w-4 h-4" />
+                  )}
+                  Ringkasan Lembar: Tingkat Indikasi {forensikTerpilih.tingkatTertinggi.toUpperCase()}
+                </span>
+                <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-white/80 tabular">
+                  Skor Tertinggi: {forensikTerpilih.skorTertinggi}/100 &bull; {forensikTerpilih.totalUnicode} Karakter Watermark
+                </span>
+              </div>
+              <p className="text-xs leading-relaxed">
+                {forensikTerpilih.temuan.length === 0
+                  ? 'Seluruh teks jawaban ketikan siswa pada lembar ini bersih dari karakter watermark Unicode tak terlihat.'
+                  : `Terperiksa ${forensikTerpilih.jumlahBerkas} berkas lampiran dan jawaban teks uraian. Klik juga tombol "Detail" pada masing-masing kartu berkas di lembar jawaban untuk memindai ulang berkas asli.`}
+              </p>
+            </div>
+
+            {forensikTerpilih.temuan.length > 0 && (
+              <div className="space-y-3">
+                {forensikTerpilih.temuan.map((t, idx) => (
+                  <div key={idx} className="rounded-2xl border border-[#DCEAF7] bg-[#F8FBFF] p-4 space-y-2">
+                    <div className="flex items-center justify-between gap-2 flex-wrap">
+                      <div>
+                        <div className="text-xs font-extrabold text-[#1B4E80]">{t.label}</div>
+                        <div className="text-[11px] text-[#66748C]">{t.sublabel}</div>
+                      </div>
+                      <span
+                        className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border tabular ${
+                          t.hasil.tingkat === 'tinggi'
+                            ? 'bg-[#FDEAE7] text-[#C2412E] border-[#FECACA]'
+                            : t.hasil.tingkat === 'sedang'
+                            ? 'bg-[#FFF1DD] text-[#B45309] border-[#FBD38D]'
+                            : 'bg-[#E4F8EE] text-[#15885A] border-[#BBF7D0]'
+                        }`}
+                      >
+                        {t.hasil.tingkat.toUpperCase()} ({t.hasil.skor_risiko}/100)
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#4B5A70]">{t.hasil.ringkasan}</p>
+                    {t.hasil.temuan_unicode.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 pt-1">
+                        {t.hasil.temuan_unicode.map((u) => (
+                          <span
+                            key={u.kode}
+                            className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#FDEAE7] text-[#C2412E]"
+                          >
+                            {u.kode} ({u.nama}) ×{u.jumlah}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    {t.hasil.temuan_metadata.filter((m) => m.bobot_curiga !== 'info').length > 0 && (
+                      <div className="space-y-1 pt-1">
+                        {t.hasil.temuan_metadata
+                          .filter((m) => m.bobot_curiga !== 'info')
+                          .map((m, mi) => (
+                            <div
+                              key={mi}
+                              className="text-[11px] bg-white border border-[#E6EEF7] rounded-lg px-2.5 py-1.5"
+                            >
+                              <strong className="text-[#1B4E80]">{m.kunci}:</strong>{' '}
+                              <span className="font-mono">{m.nilai}</span> — <span className="text-[#66748C]">{m.keterangan}</span>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </Modal>
 
       <Toast toast={toast} onClose={() => setToast(null)} />

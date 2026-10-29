@@ -31,6 +31,10 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
    pengumuman, notifikasi, log aktivitas & status online, materi per subbab + terbit/tanggal buka/kelas tujuan,
    LKPD bertahap, rubrik & saran koreksi AI, catatan guru di evaluasi, hasil per soal untuk siswa, dan pendaftaran
    akun mandiri.
+4. `supabase/migrations/20261029_lampiran_essay_dan_deteksi_ai.sql`: konfigurasi format berkas soal uraian oleh guru
+   (`questions.format_file`, bawaan PDF/Word/Gambar), bucket privat `jawaban-essay` untuk foto kamera & berkas jawaban
+   terkompresi siswa (terkunci setelah kumpul final kecuali izin pengerjaan ulang), serta validasi lampiran & penyimpanan
+   hasil deteksi watermark/metadata AI pada `kumpulkan_pengerjaan()`.
 
 ## Pengaturan Supabase Auth
 

@@ -1,4 +1,6 @@
 // Data & pesan bersama untuk halaman pengerjaan siswa dan panel koreksi guru.
+import type { SupabaseClient } from '@supabase/supabase-js';
+import type { LampiranJawaban } from '@/lib/lampiran/tipe';
 
 export type JenisPengerjaan = 'lkpd' | 'latihan' | 'evaluasi';
 
@@ -38,10 +40,35 @@ export interface Soal {
   tahap?: string | null;
   jawaban_ideal?: string | null;
   rubrik?: KriteriaRubrik[] | null;
+  format_file?: string[] | null;
 }
 
 /** Kolom soal yang boleh dibaca siswa (tanpa kunci jawaban, jawaban ideal, dan rubrik). */
-export const KOLOM_SOAL_SISWA = 'id, urutan, tipe, pertanyaan, opsi_a, opsi_b, opsi_c, opsi_d, bobot, tahap';
+export const KOLOM_SOAL_SISWA_LAMA = 'id, urutan, tipe, pertanyaan, opsi_a, opsi_b, opsi_c, opsi_d, bobot, tahap';
+export const KOLOM_SOAL_SISWA = `${KOLOM_SOAL_SISWA_LAMA}, format_file`;
+
+/** Muat soal untuk siswa dengan fallback aman bila migrasi kolom format_file belum dijalankan. */
+export async function muatSoalSiswa(
+  supabase: SupabaseClient,
+  jenis: JenisPengerjaan,
+  idMateri: string
+): Promise<{ data: Soal[] | null; error: { message?: string; code?: string } | null }> {
+  const jalankan = (kolom: string) =>
+    supabase
+      .from('questions')
+      .select(`${kolom}, id_materi`)
+      .eq('category', jenis)
+      .or(`id_materi.is.null,id_materi.eq.${idMateri}`)
+      .order('id_materi', { ascending: true, nullsFirst: true })
+      .order('urutan', { ascending: true });
+
+  const r1 = await jalankan(KOLOM_SOAL_SISWA);
+  if (r1.error && (r1.error.code === '42703' || /format_file/i.test(r1.error.message || ''))) {
+    const r2 = await jalankan(KOLOM_SOAL_SISWA_LAMA);
+    return { data: (r2.data as unknown as Soal[]) ?? null, error: r2.error };
+  }
+  return { data: (r1.data as unknown as Soal[]) ?? null, error: r1.error };
+}
 
 /** Tahapan LKPD konstruktivis (bawaan; guru boleh mengubah judul & instruksinya). */
 export interface TahapLkpd {
@@ -98,6 +125,27 @@ export function petaJawaban(json: unknown): Record<string, string> {
   return Object.fromEntries(Object.entries(answers as Record<string, unknown>).map(([k, v]) => [k, String(v ?? '')]));
 }
 
+/** Ambil peta lampiran berkas soal essay ({ attachments: { [idSoal]: LampiranJawaban[] } }). */
+export function petaLampiran(json: unknown): Record<string, LampiranJawaban[]> {
+  if (!json || typeof json !== 'object') return {};
+  const att = (json as { attachments?: unknown }).attachments;
+  if (!att || typeof att !== 'object') return {};
+  const out: Record<string, LampiranJawaban[]> = {};
+  for (const [k, v] of Object.entries(att as Record<string, unknown>)) {
+    if (!Array.isArray(v)) continue;
+    const valid = v.filter((item): item is LampiranJawaban => Boolean(item && typeof item === 'object' && typeof (item as any).path === 'string'));
+    if (valid.length) out[k] = valid;
+  }
+  return out;
+}
+
+/** Soal PG wajib pilih opsi; soal essay dianggap terjawab bila teks terisi ATAU minimal 1 berkas terunggah. */
+export function apakahSoalTerjawab(soal: Soal, teks: string | undefined, lampiran?: LampiranJawaban[] | null): boolean {
+  if ((teks ?? '').trim().length > 0) return true;
+  if (soal.tipe !== 'pg' && Array.isArray(lampiran) && lampiran.length > 0) return true;
+  return false;
+}
+
 /** Terjemahkan error dari fungsi database kumpulkan_pengerjaan / soal_dengan_kunci. */
 export function pesanGalat(err: { message?: string; code?: string } | null | undefined): string {
   const msg = err?.message || '';
@@ -132,6 +180,11 @@ export function pesanGalat(err: { message?: string; code?: string } | null | und
     SUMBER_TIDAK_VALID: 'Sumber koreksi tidak dikenal.',
     HASIL_TIDAK_VALID: 'Hasil koreksi tidak valid.',
     PENGUMPULAN_TIDAK_ADA: 'Pengumpulan tidak ditemukan (mungkin sudah dihapus).',
+    FORMAT_FILE_TIDAK_VALID: 'Pengaturan format berkas tidak valid.',
+    LAMPIRAN_TIDAK_VALID: 'Data lampiran berkas tidak valid.',
+    LAMPIRAN_TERLALU_BANYAK: 'Maksimal 5 berkas/foto untuk setiap butir soal essay.',
+    LAMPIRAN_BUKAN_MILIK: 'Berkas lampiran tidak valid atau bukan milik akun Anda.',
+    FORMAT_BERKAS_DITOLAK: 'Format berkas tidak sesuai dengan ketentuan guru pada soal ini.',
     kelas_nama_unik: 'Nama kelas itu sudah dipakai.',
     kelas_anggota_satu_kelas_siswa: 'Siswa itu sudah terdaftar di kelas lain.',
     jadwal_check: 'Jam selesai harus setelah jam mulai.',
@@ -149,10 +202,13 @@ export function pesanGalat(err: { message?: string; code?: string } | null | und
     return 'Akses ditolak: akun Anda tidak punya izin untuk tindakan ini (atau migrasi database belum dijalankan).';
   }
   if (/bucket not found/i.test(msg)) {
+    if (/jawaban-essay/i.test(msg)) {
+      return 'Penyimpanan berkas jawaban essay belum disiapkan: jalankan migrasi database 20261029 terlebih dahulu.';
+    }
     return 'Penyimpanan berkas belum disiapkan: jalankan migrasi database 20261026 terlebih dahulu.';
   }
   if (/payload too large|exceeded the maximum allowed size|too large/i.test(msg)) {
-    return 'Ukuran berkas terlalu besar (maksimal 10 MB).';
+    return 'Ukuran berkas melebihi batas penyimpanan (maksimal 25 MB).';
   }
   if (/mime type|invalid_mime_type/i.test(msg)) {
     return 'Jenis berkas tidak didukung. Gunakan PDF, PNG, JPG, GIF, atau WEBP.';

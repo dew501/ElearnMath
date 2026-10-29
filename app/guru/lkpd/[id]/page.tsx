@@ -12,8 +12,9 @@ import { FormSoal, type AwalSoal, type MateriRingkas } from '@/components/form-s
 import { PengantarLkpd, KepalaTahap } from '@/components/lkpd-pengantar';
 import { UUID_RE } from '@/lib/akses';
 import { OPSI, bobotSoal, pesanGalat, tahapanDari, teksOpsi, type Soal, type TahapLkpd } from '@/lib/pengerjaan';
+import { labelFormatFile } from '@/lib/lampiran/tipe';
 import { useProfil } from '@/lib/use-profil';
-import { ArrowLeft, Save, Plus, Trash2, ChevronUp, ChevronDown, PencilLine, Eye, PencilRuler, AlertTriangle, Layers, Sparkles } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, ChevronUp, ChevronDown, PencilLine, Eye, PencilRuler, AlertTriangle, Layers, Sparkles, Paperclip } from 'lucide-react';
 
 interface Meta {
   judul: string;
@@ -148,9 +149,14 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
           <span className="px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#1B4E80]">{q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian'}</span>
           <span className="px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">Bobot {bobotSoal(q)}</span>
           {q.tipe !== 'pg' && (
-            <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${q.rubrik?.length || q.jawaban_ideal ? 'bg-[#F3E8FF] text-[#6D28D9]' : 'bg-[#F1F5F9] text-[#94A3B8]'}`}>
-              <Sparkles className="w-3 h-3" /> {q.rubrik?.length ? `Rubrik ${q.rubrik.length}` : q.jawaban_ideal ? 'Jawaban ideal' : 'Tanpa rubrik'}
-            </span>
+            <>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full ${q.rubrik?.length || q.jawaban_ideal ? 'bg-[#F3E8FF] text-[#6D28D9]' : 'bg-[#F1F5F9] text-[#94A3B8]'}`}>
+                <Sparkles className="w-3 h-3" /> {q.rubrik?.length ? `Rubrik ${q.rubrik.length}` : q.jawaban_ideal ? 'Jawaban ideal' : 'Tanpa rubrik'}
+              </span>
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4]" title="Format lampiran berkas/foto yang diterima">
+                <Paperclip className="w-3 h-3" /> {labelFormatFile(q.format_file)}
+              </span>
+            </>
           )}
         </div>
         {mode === 'susun' && (

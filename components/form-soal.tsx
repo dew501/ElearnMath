@@ -5,7 +5,8 @@ import { createClient } from '@/lib/supabase/client';
 import { Modal } from '@/components/ui/modal';
 import { Spinner } from '@/components/ui/skeleton';
 import { JENIS, OPSI, TAHAPAN_BAWAAN, pesanGalat, tahapanDari, type JenisPengerjaan, type KriteriaRubrik, type Soal, type TahapLkpd } from '@/lib/pengerjaan';
-import { AlertTriangle, Plus, Trash2, Sparkles } from 'lucide-react';
+import { FORMAT_DEFAULT_ESSAY, GRUP_FORMAT_ESSAY, labelFormatFile, normalisasiFormatFile } from '@/lib/lampiran/tipe';
+import { AlertTriangle, Plus, Trash2, Sparkles, Paperclip, Check } from 'lucide-react';
 
 export interface MateriRingkas {
   id: string;
@@ -29,6 +30,8 @@ interface Form {
   tahap: string;
   jawaban_ideal: string;
   rubrik: (Omit<KriteriaRubrik, 'nilai' | 'poin' | 'toleransi'> & { nilai: string; poin: string; toleransi: string })[];
+  format_file: string[];
+  ekstensi_kustom: string;
 }
 
 export type AwalSoal = Partial<Soal> & { category: JenisPengerjaan };
@@ -37,8 +40,21 @@ const inputClass =
   'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
 const kecil = 'px-2.5 py-2 rounded-lg border border-[#DCEAF7] bg-white text-xs text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4]';
 const KATEGORI = Object.keys(JENIS) as JenisPengerjaan[];
+const KUNCI_GRUP_FORMAT = new Set(GRUP_FORMAT_ESSAY.map((g) => g.kunci));
+
+function daftarFormatAkhir(f: Pick<Form, 'format_file' | 'ekstensi_kustom'>): string[] {
+  if (f.format_file.includes('*')) return ['*'];
+  const kustom = f.ekstensi_kustom
+    .split(/[\s,;]+/)
+    .map((s) => s.trim().toLowerCase().replace(/[^a-z0-9.]/g, ''))
+    .filter((s) => s && s !== '.')
+    .map((s) => (s.startsWith('.') ? s : `.${s}`));
+  const gabung = [...f.format_file, ...kustom];
+  return gabung.length ? normalisasiFormatFile(gabung) : [...FORMAT_DEFAULT_ESSAY];
+}
 
 function keForm(a: AwalSoal): Form {
+  const norm = normalisasiFormatFile(a.format_file);
   return {
     id: a.id ?? null,
     category: a.category,
@@ -55,6 +71,8 @@ function keForm(a: AwalSoal): Form {
     tahap: a.tahap ?? '',
     jawaban_ideal: a.jawaban_ideal ?? '',
     rubrik: (Array.isArray(a.rubrik) ? a.rubrik : []).map((k) => ({ jenis: k.jenis, label: k.label ?? '', nilai: String(k.nilai ?? ''), poin: String(k.poin ?? ''), toleransi: k.toleransi != null ? String(k.toleransi) : '' })),
+    format_file: norm.filter((x) => KUNCI_GRUP_FORMAT.has(x)),
+    ekstensi_kustom: norm.filter((x) => !KUNCI_GRUP_FORMAT.has(x)).join(', '),
   };
 }
 
@@ -128,9 +146,11 @@ export function FormSoal({
       }
     }
     setMenyimpan(true);
+    const formatAkhir = form.tipe === 'essay' ? daftarFormatAkhir(form) : null;
+    const { ekstensi_kustom: _abaikanKustom, ...muatanForm } = form;
     const { error } = await supabase.rpc('simpan_soal', {
       p_soal: {
-        ...form,
+        ...muatanForm,
         bobot,
         urutan,
         id: form.id ?? '',
@@ -138,6 +158,7 @@ export function FormSoal({
         tahap: form.category === 'lkpd' && form.id_materi ? form.tahap : '',
         jawaban_ideal: form.tipe === 'essay' ? form.jawaban_ideal : '',
         rubrik: form.tipe === 'essay' ? rubrik : [],
+        format_file: formatAkhir,
       },
     });
     setMenyimpan(false);
@@ -227,49 +248,115 @@ export function FormSoal({
               </div>
             </fieldset>
           ) : (
-            <div className="rounded-2xl border border-[#E3D7FF] bg-[#FAF7FF] p-4 space-y-3">
-              <p className="text-xs font-extrabold text-[#6D28D9] flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> Bahan koreksi AI (tidak terlihat siswa)</p>
-              <div>
-                <label htmlFor="f-ideal" className="block text-xs font-bold mb-1.5">Jawaban ideal</label>
-                <textarea id="f-ideal" rows={3} value={form.jawaban_ideal} onChange={(e) => ubah({ jawaban_ideal: e.target.value })} className={`${inputClass} resize-y`} placeholder="Contoh: Mean = 927/6 = 154,5 cm. Median = 153,5 cm. Modus = 152 cm." />
-              </div>
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-xs font-bold">Rubrik penilaian</span>
-                  <button type="button" onClick={() => ubah({ rubrik: [...form.rubrik, { jenis: 'angka', label: '', nilai: '', poin: '', toleransi: '' }] })} className="text-xs font-bold text-[#6D28D9] flex items-center gap-1 hover:underline">
-                    <Plus className="w-3.5 h-3.5" /> Tambah kriteria
+            <div className="space-y-3">
+              <div className="rounded-2xl border border-[#DCEAF7] bg-[#F4F9FF] p-4 space-y-3">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <p className="text-xs font-extrabold text-[#1B4E80] flex items-center gap-1.5">
+                    <Paperclip className="w-4 h-4 text-[#2E7BC4]" /> Format berkas / foto jawaban yang diterima
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => ubah({ format_file: [...FORMAT_DEFAULT_ESSAY], ekstensi_kustom: '' })}
+                    className="text-[11px] font-bold text-[#2E7BC4] hover:underline"
+                  >
+                    Reset ke bawaan (PDF, Word, Gambar)
                   </button>
                 </div>
-                {form.rubrik.length === 0 ? (
-                  <p className="text-[11px] text-[#66748C]">Belum ada kriteria. Tanpa rubrik, AI menilai berdasarkan jawaban ideal; mesin cadangan hanya membandingkan kemiripan.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {form.rubrik.map((k, i) => (
-                      <div key={i} className="grid grid-cols-[110px,1fr,90px,auto] sm:grid-cols-[120px,1.3fr,1fr,70px,auto] gap-1.5 items-center">
-                        <select aria-label={`Jenis kriteria ${i + 1}`} value={k.jenis} onChange={(e) => ubahKriteria(i, { jenis: e.target.value as KriteriaRubrik['jenis'] })} className={kecil}>
-                          <option value="angka">Angka hasil</option>
-                          <option value="kata">Kata kunci</option>
-                          <option value="panjang">Min. kata</option>
-                        </select>
-                        <input aria-label={`Keterangan kriteria ${i + 1}`} value={k.label} onChange={(e) => ubahKriteria(i, { label: e.target.value })} placeholder="Keterangan, mis. Mean = 154,5" className={`${kecil} hidden sm:block`} />
-                        <input
-                          aria-label={`Nilai kriteria ${i + 1}`}
-                          value={k.nilai}
-                          onChange={(e) => ubahKriteria(i, { nilai: e.target.value })}
-                          placeholder={k.jenis === 'angka' ? '154,5' : k.jenis === 'kata' ? 'tengah|urut' : '10'}
-                          className={kecil}
-                        />
-                        <input aria-label={`Poin kriteria ${i + 1}`} value={k.poin} inputMode="decimal" onChange={(e) => ubahKriteria(i, { poin: e.target.value })} placeholder="poin" className={`${kecil} tabular`} />
-                        <button type="button" aria-label={`Hapus kriteria ${i + 1}`} onClick={() => ubah({ rubrik: form.rubrik.filter((_, j) => j !== i) })} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#E3543F] hover:bg-[#FDEAE7]">
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
-                    <p className="text-[11px] text-[#66748C]">
-                      Angka: hasil yang harus muncul (koma/titik desimal & pecahan dikenali). Kata kunci: pisahkan alternatif dengan &ldquo;|&rdquo;. Total poin rubrik {totalRubrik} akan disesuaikan ke bobot soal ({form.bobot || 0}).
-                    </p>
+                <div className="flex flex-wrap gap-1.5" role="group" aria-label="Format berkas yang diizinkan">
+                  {GRUP_FORMAT_ESSAY.map((g) => {
+                    const dipilih = form.format_file.includes(g.kunci);
+                    return (
+                      <button
+                        key={g.kunci}
+                        type="button"
+                        aria-pressed={dipilih}
+                        onClick={() => {
+                          if (g.kunci === '*') {
+                            ubah({ format_file: dipilih ? [...FORMAT_DEFAULT_ESSAY] : ['*'], ekstensi_kustom: dipilih ? form.ekstensi_kustom : '' });
+                            return;
+                          }
+                          const tanpaSemua = form.format_file.filter((x) => x !== '*');
+                          const baru = tanpaSemua.includes(g.kunci)
+                            ? tanpaSemua.filter((x) => x !== g.kunci)
+                            : [...tanpaSemua, g.kunci];
+                          ubah({ format_file: baru });
+                        }}
+                        className={`btn-press inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border transition-colors ${
+                          dipilih
+                            ? 'bg-[#2E7BC4] border-[#2E7BC4] text-white shadow-sm'
+                            : 'bg-white border-[#DCEAF7] text-[#4B5A70] hover:border-[#2E7BC4]/50'
+                        }`}
+                      >
+                        {dipilih && <Check className="w-3.5 h-3.5" />}
+                        {g.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                {!form.format_file.includes('*') && (
+                  <div>
+                    <label htmlFor="f-ekstensi-kustom" className="block text-[11px] font-bold text-[#4B5A70] mb-1">
+                      Ekstensi khusus lainnya <span className="font-normal text-[#94A3B8]">(opsional, pisahkan dengan koma — mis. .ggb, .py)</span>
+                    </label>
+                    <input
+                      id="f-ekstensi-kustom"
+                      type="text"
+                      value={form.ekstensi_kustom}
+                      onChange={(e) => ubah({ ekstensi_kustom: e.target.value })}
+                      placeholder="Contoh: .ggb, .svg"
+                      className={kecil + ' w-full'}
+                    />
                   </div>
                 )}
+                <p className="text-[11px] text-[#66748C]">
+                  Aktif untuk siswa: <strong className="text-[#1B4E80]">{labelFormatFile(daftarFormatAkhir(form))}</strong>. Bila semua pilihan dikosongkan, sistem otomatis memakai bawaan (PDF, Word, Gambar). Siswa juga dapat memotret jawaban langsung dari kamera web.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-[#E3D7FF] bg-[#FAF7FF] p-4 space-y-3">
+                <p className="text-xs font-extrabold text-[#6D28D9] flex items-center gap-1.5"><Sparkles className="w-4 h-4" /> Bahan koreksi AI (tidak terlihat siswa)</p>
+                <div>
+                  <label htmlFor="f-ideal" className="block text-xs font-bold mb-1.5">Jawaban ideal</label>
+                  <textarea id="f-ideal" rows={3} value={form.jawaban_ideal} onChange={(e) => ubah({ jawaban_ideal: e.target.value })} className={`${inputClass} resize-y`} placeholder="Contoh: Mean = 927/6 = 154,5 cm. Median = 153,5 cm. Modus = 152 cm." />
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-xs font-bold">Rubrik penilaian</span>
+                    <button type="button" onClick={() => ubah({ rubrik: [...form.rubrik, { jenis: 'angka', label: '', nilai: '', poin: '', toleransi: '' }] })} className="text-xs font-bold text-[#6D28D9] flex items-center gap-1 hover:underline">
+                      <Plus className="w-3.5 h-3.5" /> Tambah kriteria
+                    </button>
+                  </div>
+                  {form.rubrik.length === 0 ? (
+                    <p className="text-[11px] text-[#66748C]">Belum ada kriteria. Tanpa rubrik, AI menilai berdasarkan jawaban ideal; mesin cadangan hanya membandingkan kemiripan.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {form.rubrik.map((k, i) => (
+                        <div key={i} className="grid grid-cols-[110px,1fr,90px,auto] sm:grid-cols-[120px,1.3fr,1fr,70px,auto] gap-1.5 items-center">
+                          <select aria-label={`Jenis kriteria ${i + 1}`} value={k.jenis} onChange={(e) => ubahKriteria(i, { jenis: e.target.value as KriteriaRubrik['jenis'] })} className={kecil}>
+                            <option value="angka">Angka hasil</option>
+                            <option value="kata">Kata kunci</option>
+                            <option value="panjang">Min. kata</option>
+                          </select>
+                          <input aria-label={`Keterangan kriteria ${i + 1}`} value={k.label} onChange={(e) => ubahKriteria(i, { label: e.target.value })} placeholder="Keterangan, mis. Mean = 154,5" className={`${kecil} hidden sm:block`} />
+                          <input
+                            aria-label={`Nilai kriteria ${i + 1}`}
+                            value={k.nilai}
+                            onChange={(e) => ubahKriteria(i, { nilai: e.target.value })}
+                            placeholder={k.jenis === 'angka' ? '154,5' : k.jenis === 'kata' ? 'tengah|urut' : '10'}
+                            className={kecil}
+                          />
+                          <input aria-label={`Poin kriteria ${i + 1}`} value={k.poin} inputMode="decimal" onChange={(e) => ubahKriteria(i, { poin: e.target.value })} placeholder="poin" className={`${kecil} tabular`} />
+                          <button type="button" aria-label={`Hapus kriteria ${i + 1}`} onClick={() => ubah({ rubrik: form.rubrik.filter((_, j) => j !== i) })} className="w-8 h-8 flex items-center justify-center rounded-lg text-[#E3543F] hover:bg-[#FDEAE7]">
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))}
+                      <p className="text-[11px] text-[#66748C]">
+                        Angka: hasil yang harus muncul (koma/titik desimal & pecahan dikenali). Kata kunci: pisahkan alternatif dengan &ldquo;|&rdquo;. Total poin rubrik {totalRubrik} akan disesuaikan ke bobot soal ({form.bobot || 0}).
+                      </p>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
