@@ -110,7 +110,7 @@ export function EditorHtml({ initialValue, onChange, onUploadImage, placeholder 
   ];
 
   return (
-    <div className="rounded-2xl border border-[#DCEAF7] bg-white overflow-hidden focus-within:border-[#2E7BC4] focus-within:ring-4 focus-within:ring-[#2E7BC4]/10 transition-all">
+    <div className="rounded-2xl border border-[#D5E5F5] bg-white overflow-hidden shadow-[inset_0_1px_2px_rgba(27,78,128,0.03)] focus-within:border-[#2E7BC4] focus-within:shadow-[0_0_0_3.5px_rgba(46,123,196,0.14)] transition-[border-color,box-shadow] duration-150 ease-[var(--ease-out)]">
       <div className="flex flex-wrap items-center gap-0.5 p-1.5 border-b border-[#E6EEF7] bg-[#F8FBFF]" role="toolbar" aria-label="Format teks">
         {tombol.map(({ icon: Icon, label, aksi }) => (
           <button
@@ -120,13 +120,13 @@ export function EditorHtml({ initialValue, onChange, onUploadImage, placeholder 
             aria-label={label}
             onMouseDown={(e) => e.preventDefault()}
             onClick={aksi}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-[#4B5A70] hover:bg-[#EAF6FF] hover:text-[#1B4E80] transition-colors"
+            className="btn-press w-8 h-8 flex items-center justify-center rounded-lg text-[#4B5A70] hover:bg-[#EAF6FF] hover:text-[#1B4E80]"
           >
             <Icon className="w-4 h-4" />
           </button>
         ))}
         {mengunggah && (
-          <span className="ml-2 text-[11px] font-semibold text-[#2E7BC4] flex items-center gap-1.5">
+          <span className="ml-2 text-xs font-semibold text-[#2E7BC4] flex items-center gap-1.5">
             <Spinner className="w-3.5 h-3.5" /> Mengunggah gambar...
           </span>
         )}
@@ -185,7 +185,7 @@ export function EditorHtml({ initialValue, onChange, onUploadImage, placeholder 
           type="url"
           value={linkUrl}
           onChange={(e) => setLinkUrl(e.target.value)}
-          className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] text-sm focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10"
+          className="input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]"
         />
         <p className="text-xs text-[#66748C] mt-2">Jika ada teks yang dipilih, teks itu menjadi tautan.</p>
       </Modal>

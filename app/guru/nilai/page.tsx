@@ -118,60 +118,77 @@ export default function RekapNilaiPage() {
       <Navbar title="Rekap Nilai" userRole={profil?.role ?? null} userName={profil?.nama ?? '…'} />
       <StaffNav role={profil ? 'guru' : null} />
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1200px] w-full mx-auto">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-5 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2"><BarChart3 className="w-6 h-6 text-[#2E7BC4]" /> Rekap Nilai</h1>
-            <p className="text-xs text-[#66748C] mt-1">Nilai akhir yang sudah divalidasi per bab. &ldquo;Menunggu&rdquo; berarti sudah dikumpulkan tetapi belum dinilai.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <select value={kelas} onChange={(e) => setKelas(e.target.value)} aria-label="Pilih kelas" className="px-3 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80]">
-              <option value="semua">Semua kelas</option>
-              {daftarKelas.map((k) => <option key={k} value={k}>Kelas {k}{kelasSaya.includes(k) ? ' (saya)' : ''}</option>)}
-            </select>
-            <button type="button" onClick={ekspor} disabled={!rekap || mengekspor || !siswa.length} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#15885A] hover:bg-[#0F6E48] text-white text-sm font-bold shadow-[0_6px_16px_rgba(21,136,90,0.3)] disabled:opacity-50">
-              {mengekspor ? <Spinner /> : <FileSpreadsheet className="w-4 h-4" />} Ekspor Excel
-            </button>
+        <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+          <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#A7F3D0] mb-3">
+                Buku Nilai Digital · Siap Ekspor Excel
+              </div>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-xl bg-white/14 border border-white/25 flex items-center justify-center text-[#FFCA80] shadow-inner shrink-0">
+                  <BarChart3 className="w-5 h-5" />
+                </span>
+                Rekap Nilai Siswa
+              </h1>
+              <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5">Nilai akhir yang sudah divalidasi per bab. &ldquo;Menunggu&rdquo; berarti sudah dikumpulkan tetapi belum dinilai.</p>
+            </div>
+            <div className="flex items-center gap-2 relative z-10">
+              <select
+                value={kelas}
+                onChange={(e) => setKelas(e.target.value)}
+                aria-label="Pilih kelas"
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-white/14 hover:bg-white/20 border border-white/25 backdrop-blur-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFB454]/70 [&>option]:text-[#0E2A48] [&>option]:bg-white"
+              >
+                <option value="semua">Semua kelas</option>
+                {daftarKelas.map((k) => <option key={k} value={k}>Kelas {k}{kelasSaya.includes(k) ? ' (saya)' : ''}</option>)}
+              </select>
+              <button type="button" onClick={ekspor} disabled={!rekap || mengekspor || !siswa.length} className="btn-emerald inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold disabled:opacity-50">
+                {mengekspor ? <Spinner /> : <FileSpreadsheet className="w-4 h-4" />} Ekspor Excel
+              </button>
+            </div>
           </div>
         </div>
 
         {rekap?.galat && <div role="alert" className="mb-4 p-4 rounded-xl bg-[#FDEAE7] border border-[#FECACA] text-[#991B1B] text-xs font-bold flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> {rekap.galat}</div>}
 
         {statistik && (
-          <div className="grid grid-cols-3 gap-3 mb-5">
-            {statistik.map((s) => (
-              <div key={s.j} className="glass-card p-4">
-                <div className="text-[11px] font-bold text-[#66748C] uppercase tracking-wider">{JENIS[s.j].singkat}</div>
-                <div className="text-2xl font-extrabold text-[#1B4E80] tabular mt-1">{s.rata ?? '–'}</div>
-                <div className="text-[11px] text-[#66748C]">rata-rata dari {s.n} nilai{s.menunggu ? <span className="text-[#B45309] font-semibold"> · {s.menunggu} menunggu</span> : ''}</div>
-              </div>
-            ))}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-5">
+            {statistik.map((s, idx) => {
+              return (
+                <div key={s.j} className="bento-stat p-4 sm:p-5 anim-rise" style={{ ['--i' as string]: idx }}>
+                  <div className="text-xs font-extrabold text-[#5A6B82]">{JENIS[s.j].judul}</div>
+                  <div className="text-3xl font-extrabold text-[#0E2A48] tabular mt-1.5 leading-none">{s.rata ?? '–'}</div>
+                  <div className="text-xs font-medium text-[#5A6B82] mt-2">rata-rata dari <strong className="tabular text-[#0E2A48]">{s.n}</strong> nilai{s.menunggu ? <span className="text-[#B45309] font-bold"> · {s.menunggu} menunggu</span> : ''}</div>
+                </div>
+              );
+            })}
           </div>
         )}
 
         {!rekap ? (
           <Skeleton className="h-72 rounded-3xl" />
         ) : siswa.length === 0 || rekap.materi.length === 0 ? (
-          <div className="glass-card p-10 text-center"><Inbox className="w-12 h-12 text-[#BFDBFE] mx-auto mb-3" /><p className="text-sm font-semibold text-[#1B4E80]">{rekap.materi.length ? 'Belum ada siswa di kelas ini.' : 'Belum ada materi terbit.'}</p></div>
+          <div className="glass-card p-10 text-center"><Inbox className="w-12 h-12 text-[#9CC5EC] mx-auto mb-3" /><p className="text-sm font-bold text-[#0E2A48]">{rekap.materi.length ? 'Belum ada siswa di kelas ini.' : 'Belum ada materi terbit.'}</p></div>
         ) : (
           <div className="glass-card overflow-hidden anim-rise">
             <div className="overflow-x-auto">
-              <table className="text-sm border-collapse">
+              <table className="w-full text-sm border-collapse">
                 <thead>
-                  <tr className="bg-[#1B4E80] text-white text-xs">
-                    <th rowSpan={2} className="sticky left-0 z-10 bg-[#1B4E80] text-left px-4 py-2 min-w-[180px]">Siswa</th>
-                    {rekap.materi.map((m) => <th key={m.id} colSpan={3} className="px-2 py-2 border-l border-white/20" title={m.judul}>Bab {m.bab}</th>)}
-                    <th rowSpan={2} className="px-3 py-2 border-l border-white/20">Rata-rata</th>
+                  <tr className="bg-[#0E2A48] text-white text-xs">
+                    <th rowSpan={2} className="sticky left-0 z-10 bg-[#0E2A48] text-left px-4 py-2.5 min-w-[190px] font-bold">Siswa</th>
+                    {rekap.materi.map((m) => <th key={m.id} colSpan={3} className="px-2 py-2.5 border-l border-white/15 font-bold" title={m.judul}>Bab {m.bab}</th>)}
+                    <th rowSpan={2} className="px-3.5 py-2.5 border-l border-white/15 font-bold">Rata-rata</th>
                   </tr>
-                  <tr className="bg-[#2E7BC4] text-white text-[10px]">
-                    {rekap.materi.map((m) => JENIS_URUT.map((j, i) => <th key={m.id + j} className={`px-2 py-1.5 font-bold ${i === 0 ? 'border-l border-white/20' : ''}`}>{JENIS[j].singkat}</th>))}
+                  <tr className="bg-[#1C548E] text-white text-[11px]">
+                    {rekap.materi.map((m) => JENIS_URUT.map((j, i) => <th key={m.id + j} className={`px-2.5 py-1.5 font-bold ${i === 0 ? 'border-l border-white/15' : ''}`}>{JENIS[j].singkat}</th>))}
                   </tr>
                 </thead>
                 <tbody>
                   {siswa.map((s) => (
-                    <tr key={s.id} className="border-t border-[#F1F5F9] hover:bg-[#F8FBFF]">
-                      <td className="sticky left-0 z-10 bg-white px-4 py-2.5">
+                    <tr key={s.id} className="group border-t border-[#F1F5F9] hover:bg-[#F8FBFF] transition-colors duration-150">
+                      <td className="sticky left-0 z-10 bg-white group-hover:bg-[#F8FBFF] transition-colors duration-150 px-4 py-2.5">
                         <span className="block font-bold text-[#1F2A37] whitespace-nowrap">{s.nama}</span>
-                        <span className="block text-[10px] text-[#94A3B8]">Kelas {s.kelas}{s.nomor_induk ? ` · ${s.nomor_induk}` : ''}</span>
+                        <span className="block text-[11px] text-[#94A3B8]">Kelas {s.kelas}{s.nomor_induk ? ` · ${s.nomor_induk}` : ''}</span>
                       </td>
                       {rekap.materi.map((m) =>
                         JENIS_URUT.map((j, i) => {
@@ -183,7 +200,7 @@ export default function RekapNilaiPage() {
                               ) : n.final ? (
                                 <span className={`font-extrabold ${Number(n.skor) >= 75 ? 'text-[#15885A]' : Number(n.skor) >= 60 ? 'text-[#B45309]' : 'text-[#C2412E]'}`}>{n.skor}</span>
                               ) : (
-                                <span className="text-[10px] font-bold text-[#B45309] bg-[#FFF1DD] px-1.5 py-0.5 rounded-full">{n.ulang ? 'ulang' : 'menunggu'}</span>
+                                <span className="text-[11px] font-bold text-[#B45309] bg-[#FFF1DD] px-1.5 py-0.5 rounded-full">{n.ulang ? 'ulang' : 'menunggu'}</span>
                               )}
                             </td>
                           );

@@ -25,7 +25,7 @@ interface Meta {
 
 const PETUNJUK_BAWAAN = 'Bacalah setiap tahap secara berurutan.\nKerjakan secara mandiri dan tuliskan langkah-langkahmu.\nPeriksa kembali jawabanmu sebelum mengumpulkan.';
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
 
 export default function SusunLkpdPage({ params }: { params: { id: string } }) {
   const supabase = createClient();
@@ -144,7 +144,7 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
   const KartuSoal = ({ q, nomor }: { q: Soal; nomor: number }) => (
     <div className="p-3.5 rounded-xl bg-white border border-[#E6EEF7]">
       <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-1.5 flex-wrap text-[11px] font-bold">
+        <div className="flex items-center gap-1.5 flex-wrap text-xs font-bold">
           <span className="w-6 h-6 rounded-md bg-[#1B4E80] text-white flex items-center justify-center tabular">{nomor}</span>
           <span className="px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#1B4E80]">{q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian'}</span>
           <span className="px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">Bobot {bobotSoal(q)}</span>
@@ -183,7 +183,7 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
       <Navbar title="Susun LKPD" userRole={profil?.role ?? null} userName={profil?.nama ?? '…'} />
       <StaffNav role={profil?.role === 'admin' ? 'admin' : profil ? 'guru' : null} />
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[980px] w-full mx-auto">
-        <Link href="/guru/lkpd" className="btn-press inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-white/80 border border-[#DCEAF7] text-[#66748C] hover:text-[#2E7BC4] mb-5">
+        <Link href="/guru/lkpd" className="btn-secondary inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl mb-5">
           <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Daftar LKPD
         </Link>
 
@@ -193,18 +193,20 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
           <div className="glass-card p-10 text-center"><p className="text-sm font-semibold text-[#1B4E80]">Materi tidak ditemukan.</p></div>
         ) : (
           <div className="space-y-5 pb-4">
-            <div className="flex items-end justify-between gap-4 flex-wrap anim-rise">
-              <div>
-                <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-[#FFF1DD] text-[#B45309] mb-2">Bab {bab.chapter_number}: {bab.title}</span>
-                <h1 className="text-2xl font-extrabold text-[#1B4E80]">Susun LKPD</h1>
-                <p className="text-xs text-[#66748C] mt-1">Total bobot soal yang dikerjakan siswa: <strong className={totalBobot === 100 ? 'text-[#15885A]' : 'text-[#B45309]'}>{totalBobot}</strong>{totalBobot !== 100 && ' (disarankan 100)'}</p>
-              </div>
-              <div className="grid grid-cols-2 gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm" role="tablist">
-                {([['susun', 'Susun', PencilRuler], ['pratinjau', 'Pratinjau Siswa', Eye]] as const).map(([k, label, Icon]) => (
-                  <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`btn-press flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${mode === k ? 'bg-[#2E7BC4] text-white' : 'text-[#66748C] hover:text-[#1B4E80]'}`}>
-                    <Icon className="w-3.5 h-3.5" /> {label}
-                  </button>
-                ))}
+            <div className="hero-navy p-6 sm:p-7 anim-rise">
+              <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+                <div>
+                  <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-white/14 border border-white/20 text-[#FFCA80] mb-2.5">Bab {bab.chapter_number}: {bab.title}</span>
+                  <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em]">Susun LKPD</h1>
+                  <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1">Total bobot soal yang dikerjakan siswa: <strong className={`tabular ${totalBobot === 100 ? 'text-[#86EFAC]' : 'text-[#FFCA80]'}`}>{totalBobot}</strong>{totalBobot !== 100 && ' (disarankan 100)'}</p>
+                </div>
+                <div className="grid grid-cols-2 gap-1 p-1.5 rounded-2xl bg-[#091E35]/55 border border-white/20 backdrop-blur-md shadow-inner" role="tablist">
+                  {([['susun', 'Susun', PencilRuler], ['pratinjau', 'Pratinjau Siswa', Eye]] as const).map(([k, label, Icon]) => (
+                    <button key={k} role="tab" aria-selected={mode === k} onClick={() => setMode(k)} className={`btn-press flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-extrabold ${mode === k ? 'bg-white text-[#0E2A48] shadow-[0_6px_16px_rgba(6,19,36,0.35)]' : 'text-[#C2DCF5] hover:text-white hover:bg-white/10'}`}>
+                      <Icon className="w-3.5 h-3.5" /> {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -300,18 +302,18 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
                 {(tanpaTahap.length > 0 || soalUmum.length > 0) && (
                   <section className="glass-card p-5 space-y-2">
                     <h2 className="text-sm font-extrabold text-[#1B4E80]">Soal di luar tahapan</h2>
-                    <p className="text-[11px] text-[#66748C]">Soal umum (dari Bank Soal) tampil di awal; soal khusus bab tanpa tahap tampil di akhir LKPD. Ubah soal untuk memasukkannya ke tahap.</p>
+                    <p className="text-xs text-[#66748C]">Soal umum (dari Bank Soal) tampil di awal; soal khusus bab tanpa tahap tampil di akhir LKPD. Ubah soal untuk memasukkannya ke tahap.</p>
                     {soalUmum.map((q) => <KartuSoal key={q.id} q={q} nomor={q.urutan ?? 0} />)}
                     {tanpaTahap.map((q) => <KartuSoal key={q.id} q={q} nomor={q.urutan ?? 0} />)}
                   </section>
                 )}
 
                 <div className="sticky bottom-3 z-20">
-                  <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgba(27,78,128,0.18)] p-4 space-y-3">
+                  <div className="rounded-2xl bg-white/95 backdrop-blur-xl border border-[#BED8F1] shadow-[0_1px_0_#fff_inset,0_18px_40px_-8px_rgba(10,31,56,0.24)] p-4 space-y-3">
                     {galat && <div role="alert" className="p-3 rounded-xl bg-[#FDEAE7] border border-[#FECACA] text-[#991B1B] text-xs font-semibold flex gap-2 anim-shake"><AlertTriangle className="w-4 h-4 shrink-0" /> {galat}</div>}
                     <div className="flex items-center justify-between gap-3 flex-wrap">
-                      <span className="text-xs text-[#66748C]">{berubah ? 'Judul, tujuan, petunjuk, atau tahapan belum disimpan.' : awalMeta ? 'Semua perubahan tersimpan.' : 'LKPD ini belum pernah disimpan.'}</span>
-                      <button type="button" onClick={simpanMeta} disabled={menyimpan} className="btn-press px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2468A9] text-white text-sm font-bold flex items-center gap-2 disabled:opacity-60">
+                      <span className="text-xs font-semibold text-[#5A6B82]">{berubah ? 'Judul, tujuan, petunjuk, atau tahapan belum disimpan.' : awalMeta ? 'Semua perubahan tersimpan.' : 'LKPD ini belum pernah disimpan.'}</span>
+                      <button type="button" onClick={simpanMeta} disabled={menyimpan} className="btn-primary px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 disabled:opacity-60">
                         {menyimpan ? <Spinner /> : <Save className="w-4 h-4" />} Simpan LKPD
                       </button>
                     </div>

@@ -33,6 +33,19 @@ const config: Config = {
           bg: "#FDEAE7",
         },
       },
+      fontFamily: {
+        sans: ['var(--font-jakarta, "Plus Jakarta Sans")', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif'],
+        mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'Consolas', 'monospace'],
+      },
+      // Nilai opasitas non-standar yang dipakai di kelas seperti bg-white/12 (Tailwind 3 hanya membuat kelipatan 5).
+      opacity: {
+        8: '0.08',
+        12: '0.12',
+        14: '0.14',
+        18: '0.18',
+        22: '0.22',
+        92: '0.92',
+      },
       borderRadius: {
         DEFAULT: "16px",
         sm: "10px",

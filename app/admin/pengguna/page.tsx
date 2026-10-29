@@ -31,19 +31,19 @@ interface Kelas {
 }
 
 const STATUS: Record<string, { label: string; kelas: string }> = {
-  APPROVED: { label: 'Disetujui', kelas: 'bg-[#E4F8EE] text-[#15885A]' },
-  PENDING: { label: 'Menunggu', kelas: 'bg-[#FFF1DD] text-[#B45309]' },
-  REJECTED: { label: 'Ditolak / nonaktif', kelas: 'bg-[#FDEAE7] text-[#C2412E]' },
+  APPROVED: { label: 'Disetujui', kelas: 'bg-[#E4F8EE] border border-[#B5EBD0] text-[#15885A]' },
+  PENDING: { label: 'Menunggu', kelas: 'bg-[#FFF1DD] border border-[#FBD38D] text-[#B45309]' },
+  REJECTED: { label: 'Ditolak / nonaktif', kelas: 'bg-[#FDEAE7] border border-[#FECACA] text-[#C2412E]' },
 };
 const PERAN: PeranAkun[] = ['siswa', 'guru', 'admin'];
 const kapital = (s: string) => s[0].toUpperCase() + s.slice(1);
 
 const selectClass =
-  'px-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10';
+  'input-field px-3 py-2 rounded-xl text-xs font-semibold text-[#1B4E80]';
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10';
-const tombolUtama = 'btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-60';
-const tombolBatal = 'btn-press px-5 py-2.5 rounded-xl border border-[#DCEAF7] text-[#4B5A70] font-bold text-sm hover:bg-[#F4F9FF] disabled:opacity-50';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
+const tombolUtama = 'btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2';
+const tombolBatal = 'btn-secondary px-5 py-2.5 rounded-xl font-bold text-sm';
 
 function Galat({ teks }: { teks: string | null }) {
   if (!teks) return null;
@@ -60,7 +60,7 @@ function SalinTeks({ teks }: { teks: string }) {
     <button
       type="button"
       onClick={() => navigator.clipboard?.writeText(teks).then(() => { setTersalin(true); setTimeout(() => setTersalin(false), 1500); })}
-      className="inline-flex items-center gap-1 text-[11px] font-bold text-[#2E7BC4] hover:underline"
+      className="inline-flex items-center gap-1 text-xs font-bold text-[#2E7BC4] hover:underline"
     >
       <Copy className="w-3.5 h-3.5" /> {tersalin ? 'Tersalin' : 'Salin'}
     </button>
@@ -210,21 +210,22 @@ export default function KelolaPenggunaPage() {
       <StaffNav role="admin" />
 
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-5 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80]">Kelola Pengguna</h1>
-            <p className="text-xs text-[#66748C] mt-1">Daftarkan akun siswa & guru, setujui pendaftaran, atur peran, kelas, dan status akun.</p>
+        <div className="hero-navy p-6 md:p-7 mb-5 flex items-end justify-between gap-4 flex-wrap anim-rise">
+          <div className="relative z-10">
+            <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.12] border border-white/20 text-[#FFD28E] mb-2">Manajemen Akun</span>
+            <h1 className="text-2xl md:text-[28px] font-extrabold text-white tracking-[-0.02em]">Kelola Pengguna</h1>
+            <p className="text-xs md:text-sm text-[#D2E6FA]/90 mt-1">Daftarkan akun siswa & guru, setujui pendaftaran, atur peran, kelas, dan status akun.</p>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="relative z-10 flex flex-wrap gap-2">
             {jumlahMenunggu > 0 && (
-              <button type="button" onClick={() => setSetujuiSemua(true)} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#22B573] hover:bg-[#15885A] text-white text-sm font-bold shadow-[0_6px_16px_rgba(34,181,115,0.3)]">
+              <button type="button" onClick={() => setSetujuiSemua(true)} className="btn-emerald inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold">
                 <UserCheck className="w-4 h-4" /> Setujui {jumlahMenunggu} akun menunggu
               </button>
             )}
-            <button type="button" onClick={() => setImpor(true)} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-[#DCEAF7] text-[#1B4E80] text-sm font-bold hover:border-[#2E7BC4]">
+            <button type="button" onClick={() => setImpor(true)} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white/[0.12] border border-white/25 text-white text-sm font-bold hover:bg-white/20 backdrop-blur-md">
               <Upload className="w-4 h-4" /> Impor CSV
             </button>
-            <button type="button" onClick={() => setTambah(true)} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-sm font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)]">
+            <button type="button" onClick={() => setTambah(true)} className="btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold">
               <UserPlus className="w-4 h-4" /> Tambah Akun
             </button>
           </div>
@@ -233,7 +234,7 @@ export default function KelolaPenggunaPage() {
         <div className="glass-card p-4 mb-5 flex flex-wrap gap-2 items-center anim-rise" style={{ ['--i' as string]: 1 }}>
           <div className="relative flex-1 min-w-[200px]">
             <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, email, kelas, atau NIS/NIP..." aria-label="Cari pengguna" className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10" />
+            <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, email, kelas, atau NIS/NIP..." aria-label="Cari pengguna" className="input-field w-full pl-9 pr-3 py-2 rounded-xl text-xs text-[#1F2A37]" />
           </div>
           <select value={peran} onChange={(e) => setPeran(e.target.value)} className={selectClass} aria-label="Filter peran">
             <option value="semua">Semua peran</option>
@@ -275,7 +276,7 @@ export default function KelolaPenggunaPage() {
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-[11px] font-semibold text-[#94A3B8] px-1">{tersaring.length} pengguna</p>
+            <p className="text-xs font-semibold text-[#94A3B8] px-1">{tersaring.length} pengguna</p>
             {tersaring.map((u, i) => {
               const st = STATUS[u.status_approval ?? 'PENDING'] ?? STATUS.PENDING;
               const diriSendiri = u.id === saya?.id;
@@ -283,29 +284,29 @@ export default function KelolaPenggunaPage() {
               return (
                 <article key={u.id} className={`glass-card p-4 flex flex-col md:flex-row md:items-center gap-3 anim-rise ${u.status_approval === 'PENDING' ? 'ring-1 ring-[#FBD38D]' : ''}`} style={{ ['--i' as string]: Math.min(i, 8) }}>
                   <div className="flex items-center gap-3 flex-1 min-w-0">
-                    <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[#5FA8E8] to-[#2E7BC4] text-white text-sm font-extrabold flex items-center justify-center shrink-0">
+                    <span className="w-10 h-10 rounded-full bg-gradient-to-br from-[#2E7ECF] to-[#133E6B] text-white text-sm font-extrabold flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_4px_10px_-2px_rgba(19,62,107,0.35)] shrink-0">
                       {(u.full_name || u.email || '?').charAt(0).toUpperCase()}
                     </span>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="text-sm font-bold text-[#1F2A37] truncate">{u.full_name || '(tanpa nama)'}</span>
-                        {diriSendiri && <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4]">Anda</span>}
+                        {diriSendiri && <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-[#EAF6FF] border border-[#BFDBFE] text-[#2E7BC4]">Anda</span>}
                         {u.status_approval === 'PENDING' && u.kelas_diminta && namaKelas(u.kelas_diminta) && (
-                          <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309] inline-flex items-center gap-1">
+                          <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF1DD] border border-[#FBD38D] text-[#B45309] inline-flex items-center gap-1">
                             <School className="w-3 h-3" /> minta kelas {namaKelas(u.kelas_diminta)}
                           </span>
                         )}
                       </div>
-                      <div className="text-[11px] text-[#66748C] truncate">
+                      <div className="text-xs text-[#66748C] truncate">
                         {u.email}{kelasTeks ? ` · ${kelasTeks}` : ''}{u.nomor_induk ? ` · ${u.role === 'siswa' ? 'NIS' : 'NIP'} ${u.nomor_induk}` : ''} · Terdaftar {formatTanggal(u.created_at)}
                       </div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] uppercase tracking-wide">{u.role ?? '-'}</span>
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded-full ${st.kelas}`}>{st.label}</span>
+                    <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-[#EAF5FF] border border-[#BFDBFE] text-[#113355] uppercase tracking-wide">{u.role ?? '-'}</span>
+                    <span className={`text-[11px] font-bold px-2.5 py-1 rounded-full ${st.kelas}`}>{st.label}</span>
                     {!diriSendiri && u.status_approval !== 'APPROVED' && (
-                      <button type="button" disabled={sibuk === u.id} onClick={() => setujui(u)} className="btn-press inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#22B573] hover:bg-[#15885A] text-white text-xs font-bold disabled:opacity-60">
+                      <button type="button" disabled={sibuk === u.id} onClick={() => setujui(u)} className="btn-emerald inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold">
                         {sibuk === u.id ? <Spinner className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />} Setujui
                       </button>
                     )}
@@ -314,7 +315,7 @@ export default function KelolaPenggunaPage() {
                         <X className="w-3.5 h-3.5" /> {u.status_approval === 'APPROVED' ? 'Nonaktifkan' : 'Tolak'}
                       </button>
                     )}
-                    <button type="button" onClick={() => setEdit({ ...u, kelasBaru: kelasSiswa(u.id) })} className="btn-press inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-[#1B4E80] hover:bg-[#EAF6FF]">
+                    <button type="button" onClick={() => setEdit({ ...u, kelasBaru: kelasSiswa(u.id) })} className="btn-secondary inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold">
                       <PencilLine className="w-3.5 h-3.5" /> Ubah
                     </button>
                   </div>
@@ -500,7 +501,7 @@ function UbahPengguna({
         </div>
       </div>
       {diriSendiri ? (
-        <p className="text-[11px] text-[#B45309] bg-[#FFF8EC] border border-[#FBD38D] rounded-lg px-3 py-2">
+        <p className="text-xs text-[#B45309] bg-[#FFF8EC] border border-[#FBD38D] rounded-lg px-3 py-2">
           Peran dan status akun Anda sendiri tidak bisa diubah dari sini agar Anda tidak terkunci.
         </p>
       ) : (
@@ -547,7 +548,7 @@ function UbahPengguna({
             )}
           </>
         ) : (
-          <p className="text-[11px] text-[#66748C] leading-relaxed">
+          <p className="text-xs text-[#66748C] leading-relaxed">
             Fitur ini membutuhkan <span className="font-mono">SUPABASE_SECRET_KEY</span> di server (hubungi pengelola). Sementara itu, pengguna bisa memakai &ldquo;Lupa kata sandi?&rdquo; di halaman masuk.
           </p>
         )}
@@ -560,7 +561,7 @@ function UbahPengguna({
               <Trash2 className="w-4 h-4" /> Hapus akun ini secara permanen
             </button>
           ) : (
-            <p className="text-[11px] text-[#66748C]">Untuk memblokir akun, ubah status menjadi &ldquo;Ditolak / nonaktif&rdquo;. Hapus permanen membutuhkan secret key di server.</p>
+            <p className="text-xs text-[#66748C]">Untuk memblokir akun, ubah status menjadi &ldquo;Ditolak / nonaktif&rdquo;. Hapus permanen membutuhkan secret key di server.</p>
           )}
         </div>
       )}
@@ -626,9 +627,9 @@ function TambahAkun({
       }
     >
       <div className="space-y-4 text-[#1F2A37]">
-        <div className="grid grid-cols-3 gap-1 p-1 bg-[#F4F9FF] border border-[#DCEAF7] rounded-xl" role="radiogroup" aria-label="Peran akun">
+        <div className="surface-inset grid grid-cols-3 gap-1 p-1 rounded-xl" role="radiogroup" aria-label="Peran akun">
           {PERAN.map((p) => (
-            <button key={p} type="button" role="radio" aria-checked={f.peran === p} onClick={() => setF({ ...f, peran: p })} className={`py-2 rounded-lg text-xs font-bold ${f.peran === p ? 'bg-white text-[#1B4E80] shadow-sm' : 'text-[#66748C]'}`}>
+            <button key={p} type="button" role="radio" aria-checked={f.peran === p} onClick={() => setF({ ...f, peran: p })} className={`btn-press py-2 rounded-lg text-xs font-bold ${f.peran === p ? 'bg-white text-[#1B4E80] shadow-[0_2px_6px_rgba(27,78,128,0.08)]' : 'text-[#66748C] hover:text-[#1B4E80]'}`}>
               {kapital(p)}
             </button>
           ))}
@@ -681,7 +682,7 @@ function TambahAkun({
           </fieldset>
         )}
         {layanan === false && (
-          <p className="text-[11px] text-[#66748C] bg-[#F4F9FF] border border-[#DCEAF7] rounded-lg px-3 py-2">
+          <p className="text-xs text-[#66748C] bg-[#F4F9FF] border border-[#DCEAF7] rounded-lg px-3 py-2">
             Secret key belum dipasang, jadi akun dibuat lewat pendaftaran biasa lalu otomatis disetujui. Pastikan &ldquo;Enable signup&rdquo; di Supabase menyala.
           </p>
         )}

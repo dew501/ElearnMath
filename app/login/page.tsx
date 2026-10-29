@@ -32,7 +32,7 @@ const FITUR = [
 ];
 
 const inputClass =
-  'w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCEAF7] bg-[#F8FAFC] text-sm text-[#1F2A37] placeholder:text-[#A0AEC0] focus:bg-white focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
+  'input-field w-full pl-10 pr-4 py-3 rounded-xl bg-[#F8FBFF] text-sm text-[#1F2A37] placeholder:text-[#94A3B8] focus:bg-white';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -115,22 +115,22 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 md:p-8">
-      <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-2 bg-white rounded-[28px] overflow-hidden shadow-[0_30px_80px_rgba(27,78,128,0.16)] border border-white anim-pop">
+      <div className="w-full max-w-[1000px] grid grid-cols-1 md:grid-cols-2 bg-white/95 backdrop-blur-xl rounded-[28px] overflow-hidden shadow-[0_1px_0_#ffffff_inset,0_0_0_1px_rgba(27,78,128,0.08),0_32px_80px_-14px_rgba(27,78,128,0.2)] border border-white anim-pop">
         {/* Kolom Kiri: Cover Card Gradient Biru ElearnMath */}
-        <div className="relative px-7 py-7 md:p-12 bg-gradient-to-br from-[#2E7BC4] via-[#2468A9] to-[#1B4E80] text-white flex flex-col justify-between overflow-hidden">
+        <div className="relative px-7 py-7 md:p-12 bg-gradient-to-br from-[#2E7BC4] via-[#2365A5] to-[#174470] text-white flex flex-col justify-between overflow-hidden">
           {/* Kertas berpetak & simbol matematika */}
-          <div className="absolute inset-0 opacity-[0.12] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:26px_26px] [mask-image:linear-gradient(to_bottom,#000,transparent_85%)]" aria-hidden="true" />
+          <div className="absolute inset-0 opacity-[0.13] [background-image:linear-gradient(#fff_1px,transparent_1px),linear-gradient(90deg,#fff_1px,transparent_1px)] [background-size:26px_26px] [mask-image:linear-gradient(to_bottom,#000,transparent_88%)]" aria-hidden="true" />
           <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/10 rounded-full pointer-events-none blur-xl" />
           <div className="absolute -bottom-16 -left-16 w-60 h-60 bg-[#FFB454]/25 rounded-full pointer-events-none blur-xl" />
           <span className="glyph glyph-light hidden md:block" style={{ top: '10%', right: '10%', fontSize: 56 }} aria-hidden="true">π</span>
           <span className="glyph glyph-light hidden md:block" style={{ bottom: '18%', right: '14%', fontSize: 44, ['--delay' as string]: '-8s' }} aria-hidden="true">∑</span>
 
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-1.5 px-3 md:px-3.5 py-1 md:py-1.5 rounded-full bg-white/20 backdrop-blur-md border border-white/25 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-3 md:mb-6 text-[#EAF6FF]">
-              <Sparkles className="w-3.5 h-3.5" /> E-LEARNING MATEMATIKA INTERAKTIF
+            <div className="inline-flex items-center gap-1.5 px-3 md:px-3.5 py-1 md:py-1.5 rounded-full bg-white/15 backdrop-blur-md border border-white/25 shadow-[0_1px_0_rgba(255,255,255,0.2)_inset] text-[11px] md:text-xs font-bold uppercase tracking-wider mb-3 md:mb-6 text-[#EAF6FF]">
+              <Sparkles className="w-3.5 h-3.5 text-[#FFB454]" /> E-LEARNING MATEMATIKA INTERAKTIF
             </div>
 
-            <h1 className="text-2xl md:text-4xl font-extrabold leading-tight md:mb-3.5 tracking-tight">
+            <h1 className="text-2xl md:text-[34px] font-extrabold leading-[1.18] md:mb-3.5 tracking-[-0.02em]">
               Belajar Matematika Jadi Lebih Mudah &amp; Terarah
             </h1>
 
@@ -138,14 +138,14 @@ export default function LoginPage() {
               Akses materi komprehensif, pengerjaan LKPD mandiri terstruktur, serta latihan dan evaluasi akhir dengan umpan balik langsung.
             </p>
 
-            <div className="hidden md:block space-y-3">
+            <div className="hidden md:block space-y-2.5">
               {FITUR.map(({ icon: Icon, warna, teks }, i) => (
                 <div
                   key={teks}
-                  className="anim-rise flex items-center gap-3 p-3 rounded-2xl bg-white/10 border border-white/15 backdrop-blur-md text-sm font-semibold transition-colors hover:bg-white/15"
-                  style={{ ['--i' as string]: i + 2 }}
+                  className="anim-rise flex items-center gap-3 p-3 rounded-2xl bg-white/[0.11] border border-white/[0.18] shadow-[0_1px_0_rgba(255,255,255,0.12)_inset] backdrop-blur-md text-sm font-semibold transition-colors duration-150 hover:bg-white/[0.16]"
+                  style={{ ['--i' as string]: i + 1 }}
                 >
-                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
+                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center shrink-0">
                     <Icon className={`w-4 h-4 ${warna}`} />
                   </div>
                   <span>{teks}</span>
@@ -156,18 +156,18 @@ export default function LoginPage() {
 
           <div className="relative z-10 pt-8 mt-6 border-t border-white/15 hidden md:flex items-center justify-between gap-4 text-xs text-[#EAF6FF]/70">
             <span>&copy; 2026 elearnMath. Seluruh hak cipta dilindungi.</span>
-            <span className="hidden md:inline font-mono text-[#EAF6FF]/80 bg-white/10 rounded-lg px-2 py-1" aria-hidden="true">x̄ = Σx / n</span>
+            <span className="hidden md:inline font-mono text-[#EAF6FF]/85 bg-white/10 border border-white/15 rounded-lg px-2.5 py-1" aria-hidden="true">x̄ = Σx / n</span>
           </div>
         </div>
 
         {/* Kolom Kanan: Form Otentikasi Supabase */}
         <div className="p-8 md:p-12 flex flex-col justify-center bg-white">
           <div className="mb-6">
-            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2E7BC4] to-[#1B4E80] text-white flex items-center justify-center text-2xl font-black mb-4 shadow-lg shadow-blue-500/30">
+            <div className="relative w-12 h-12 rounded-2xl bg-gradient-to-br from-[#3687D4] to-[#1B4E80] text-white flex items-center justify-center text-2xl font-black mb-4 shadow-[0_1px_0_rgba(255,255,255,0.28)_inset,0_10px_22px_-4px_rgba(27,78,128,0.35)]">
               e
-              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-md bg-[#FFB454] text-[11px] text-white flex items-center justify-center font-black">π</span>
+              <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-md bg-gradient-to-br from-[#FFB454] to-[#F0932B] text-xs text-white flex items-center justify-center font-black ring-1 ring-white/80">π</span>
             </div>
-            <h2 className="text-2xl font-extrabold text-[#1B4E80]">
+            <h2 className="text-2xl font-extrabold tracking-[-0.015em] text-[#1B4E80]">
               Masuk ke elearn<span className="text-[#F0932B]">Math</span>
             </h2>
             <p className="text-sm text-[#66748C] mt-1">
@@ -234,7 +234,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#2E7BC4] hover:bg-[#EAF6FF] transition-colors"
+                  className="btn-press absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#2E7BC4] hover:bg-[#EAF6FF]"
                   aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -245,11 +245,11 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="btn-press group w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2468A9] hover:from-[#1B4E80] hover:to-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 disabled:opacity-70"
+              className="btn-press group w-full mt-2 py-3 px-4 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2263A3] hover:from-[#2468A9] hover:to-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_10px_22px_-4px_rgba(46,123,196,0.38)] disabled:opacity-70"
             >
               {loading ? <Spinner /> : null}
               {loading ? 'Memverifikasi...' : 'Masuk Sekarang'}
-              {!loading && <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />}
+              {!loading && <ArrowRight className="w-4 h-4 transition-transform duration-150 ease-[var(--ease-out)] sm:group-hover:translate-x-0.5" />}
             </button>
           </form>
 

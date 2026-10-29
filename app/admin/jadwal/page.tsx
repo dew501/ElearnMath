@@ -27,7 +27,7 @@ interface Baris {
 type Form = Omit<Baris, 'id'> & { id: string | null };
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
 const menit = (t: string) => {
   const [h, m] = t.split(':').map(Number);
   return h * 60 + (m || 0);
@@ -153,18 +153,19 @@ export default function AturJadwalPage() {
       <Navbar title="Atur Jadwal" userRole="admin" userName={profil?.nama ?? '…'} />
       <StaffNav role="admin" />
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1200px] w-full mx-auto">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-5 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2"><CalendarDays className="w-6 h-6 text-[#2E7BC4]" /> Jadwal Mengajar</h1>
-            <p className="text-xs text-[#66748C] mt-1">Atur jadwal pelajaran tiap kelas dan guru pengampunya. Siswa dan guru melihat jadwal ini di menu Jadwal.</p>
+        <div className="hero-navy p-6 md:p-7 mb-5 flex items-end justify-between gap-4 flex-wrap anim-rise">
+          <div className="relative z-10">
+            <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.12] border border-white/20 text-[#FFD28E] mb-2">Kalender Akademik</span>
+            <h1 className="text-2xl md:text-[28px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5"><CalendarDays className="w-6 h-6 text-[#FFB454]" /> Jadwal Mengajar</h1>
+            <p className="text-xs md:text-sm text-[#D2E6FA]/90 mt-1">Atur jadwal pelajaran tiap kelas dan guru pengampunya. Siswa dan guru melihat jadwal ini di menu Jadwal.</p>
           </div>
-          <button type="button" onClick={bukaBaru} disabled={!kelas.length} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-sm font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)] disabled:opacity-50">
+          <button type="button" onClick={bukaBaru} disabled={!kelas.length} className="relative z-10 btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold">
             <Plus className="w-4 h-4" /> Tambah Jadwal
           </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 mb-5">
-          <div className="flex gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm" role="tablist" aria-label="Tampilan jadwal">
+          <div className="surface-inset flex gap-1 p-1 rounded-xl" role="tablist" aria-label="Tampilan jadwal">
             {(['kelas', 'guru'] as const).map((m) => (
               <button
                 key={m}
@@ -174,18 +175,22 @@ export default function AturJadwalPage() {
                   setMode(m);
                   setPilih(m === 'kelas' ? kelas[0]?.id ?? '' : guru[0]?.id ?? '');
                 }}
-                className={`btn-press px-4 py-2 rounded-xl text-xs font-bold ${mode === m ? 'bg-[#2E7BC4] text-white' : 'text-[#66748C] hover:text-[#1B4E80]'}`}
+                className={`btn-press px-4 py-2 rounded-[10px] text-[13px] font-semibold ${
+                  mode === m
+                    ? 'bg-white text-[#0E2A48] shadow-[0_1px_2px_rgba(15,45,78,0.12),0_2px_6px_-2px_rgba(15,45,78,0.12)]'
+                    : 'text-[#5A6B82] hover:text-[#0E2A48]'
+                }`}
               >
                 Per {m === 'kelas' ? 'Kelas' : 'Guru'}
               </button>
             ))}
           </div>
-          <select value={pilih} onChange={(e) => setPilih(e.target.value)} aria-label={mode === 'kelas' ? 'Pilih kelas' : 'Pilih guru'} className="px-3 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80] min-w-[180px]">
+          <select value={pilih} onChange={(e) => setPilih(e.target.value)} aria-label={mode === 'kelas' ? 'Pilih kelas' : 'Pilih guru'} className="input-field px-3 py-2.5 rounded-xl text-xs font-semibold text-[#1B4E80] min-w-[180px]">
             {(mode === 'kelas' ? kelas.map((k) => ({ id: k.id, label: `Kelas ${k.nama}` })) : guru.map((g) => ({ id: g.id, label: g.full_name ?? '-' }))).map((o) => (
               <option key={o.id} value={o.id}>{o.label}</option>
             ))}
           </select>
-          <span className="text-[11px] text-[#94A3B8]">Klik kartu jadwal untuk mengubah atau menghapus.</span>
+          <span className="text-xs font-medium text-[#66748C]">Klik kartu jadwal untuk mengubah atau menghapus.</span>
         </div>
 
         <section className="glass-card p-4 sm:p-5 anim-rise">

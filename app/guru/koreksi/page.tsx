@@ -151,7 +151,7 @@ function sudahDinilai(s: Submission, tab: JenisPengerjaan): boolean {
 }
 
 const selectClass =
-  'px-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10';
+  'input-field px-3 py-2 rounded-xl text-xs font-semibold text-[#1B4E80]';
 const namaTahap = (k?: string | null) => TAHAPAN_BAWAAN.find((t) => t.kunci === k)?.judul ?? k;
 
 export default function GuruKoreksiPage() {
@@ -512,24 +512,33 @@ export default function GuruKoreksiPage() {
       <StaffNav role={profil ? 'guru' : null} />
 
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1200px] w-full mx-auto">
-        <div className="flex justify-between items-end mb-6 flex-wrap gap-4 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80]">Penilaian &amp; Koreksi Tugas Siswa</h1>
-            <p className="text-xs text-[#66748C] mt-1">Gunakan Koreksi AI untuk saran nilai & umpan balik, periksa kembali, lalu simpan untuk memvalidasi.</p>
-          </div>
-          <div className="grid grid-cols-3 gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm w-full sm:w-auto" role="tablist">
-            {(Object.keys(TAB) as JenisPengerjaan[]).map((tab) => (
-              <button
-                key={tab}
-                role="tab"
-                aria-selected={activeTab === tab}
-                onClick={() => activeTab !== tab && gantiTab(tab)}
-                className={`btn-press px-3 sm:px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap ${activeTab === tab ? 'bg-[#2E7BC4] text-white shadow-[0_4px_12px_rgba(46,123,196,0.3)]' : 'text-[#66748C] hover:text-[#1B4E80] hover:bg-[#F4F9FF]'}`}
-              >
-                <span className="sm:hidden">{TAB[tab].pendek}</span>
-                <span className="hidden sm:inline">{TAB[tab].panjang}</span>
-              </button>
-            ))}
+        <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+          <div className="relative z-10 flex justify-between items-start lg:items-end flex-wrap gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+                <Sparkles className="w-3.5 h-3.5" /> Studio Penilaian &amp; Validasi Guru
+              </div>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em]">Penilaian &amp; Koreksi Tugas Siswa</h1>
+              <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5">Gunakan Koreksi AI untuk saran nilai &amp; umpan balik, periksa kembali, lalu simpan untuk memvalidasi.</p>
+            </div>
+            <div className="grid grid-cols-3 gap-1 p-1.5 rounded-2xl bg-[#091E35]/55 border border-white/20 backdrop-blur-md w-full sm:w-auto shadow-inner" role="tablist">
+              {(Object.keys(TAB) as JenisPengerjaan[]).map((tab) => (
+                <button
+                  key={tab}
+                  role="tab"
+                  aria-selected={activeTab === tab}
+                  onClick={() => activeTab !== tab && gantiTab(tab)}
+                  className={`btn-press px-3 sm:px-4 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap ${
+                    activeTab === tab
+                      ? 'bg-white text-[#0E2A48] shadow-[0_6px_16px_rgba(6,19,36,0.35)]'
+                      : 'text-[#C2DCF5] hover:text-white hover:bg-white/10'
+                  }`}
+                >
+                  <span className="sm:hidden">{TAB[tab].pendek}</span>
+                  <span className="hidden sm:inline">{TAB[tab].panjang}</span>
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -556,7 +565,7 @@ export default function GuruKoreksiPage() {
                     setStatusFilter('semua');
                     setMateriFilter('semua');
                   }}
-                  className="text-[11px] font-bold text-[#2E7BC4] hover:underline flex items-center gap-1"
+                  className="text-xs font-bold text-[#2E7BC4] hover:underline flex items-center gap-1"
                 >
                   <X className="w-3 h-3" /> Reset filter
                 </button>
@@ -566,7 +575,7 @@ export default function GuruKoreksiPage() {
             <div className="space-y-2 mb-3">
               <div className="relative">
                 <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama siswa..." aria-label="Cari nama siswa" className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10" />
+                <input type="search" value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama siswa..." aria-label="Cari nama siswa" className="input-field w-full pl-9 pr-3 py-2 rounded-xl text-xs text-[#1F2A37]" />
               </div>
               <div className="flex flex-wrap gap-2">
                 <select value={kelas} onChange={(e) => setKelas(e.target.value)} className={selectClass} aria-label="Filter kelas">
@@ -587,12 +596,12 @@ export default function GuruKoreksiPage() {
                 )}
               </div>
               {massal ? (
-                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7FF] border border-[#E3D7FF] text-[11px] font-bold text-[#5B21B6]" role="status">
+                <div className="flex items-center gap-2 p-2.5 rounded-xl bg-[#FAF7FF] border border-[#E3D7FF] text-xs font-bold text-[#5B21B6]" role="status">
                   <Spinner className="w-3.5 h-3.5" /> Koreksi AI {massal.selesai}/{massal.total}…
                   <button type="button" onClick={() => (hentiMassal.current = true)} className="ml-auto inline-flex items-center gap-1 text-[#C2412E] hover:underline"><Square className="w-3 h-3" /> Hentikan</button>
                 </div>
               ) : antreAi.length > 0 && !loading ? (
-                <button type="button" onClick={koreksiMassal} className="btn-press w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#E3D7FF] bg-[#FAF7FF] text-[11px] font-bold text-[#6D28D9] hover:bg-[#EDE9FE]">
+                <button type="button" onClick={koreksiMassal} className="btn-press w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl border border-[#E3D7FF] bg-[#FAF7FF] text-xs font-bold text-[#6D28D9] hover:bg-[#EDE9FE]">
                   <Sparkles className="w-3.5 h-3.5" /> Koreksi AI semua yang menunggu ({antreAi.length})
                 </button>
               ) : null}
@@ -622,20 +631,20 @@ export default function GuruKoreksiPage() {
                       key={sub.id}
                       onClick={() => !isSelected && pilihSubmission(sub)}
                       aria-current={isSelected}
-                      className={`anim-rise w-full p-3.5 rounded-xl border text-left transition-all duration-200 ${isSelected ? 'bg-[#EAF6FF] border-[#2E7BC4] shadow-[0_6px_16px_rgba(46,123,196,0.15)]' : 'bg-white/80 border-[#DCEAF7] hover:bg-white hover:border-[#BFDBFE]'}`}
+                      className={`anim-rise w-full p-3.5 rounded-xl border text-left transition-[background-color,border-color,box-shadow,transform] duration-150 ease-[var(--ease-out)] active:scale-[0.99] ${isSelected ? 'bg-gradient-to-r from-[#E4F2FF] to-[#F3F9FF] border-[#256DB3] ring-1 ring-[#256DB3]/25 shadow-[0_8px_20px_-6px_rgba(24,81,140,0.22)]' : 'bg-white border-[#CFE2F6] sm:hover:bg-[#F8FBFF] sm:hover:border-[#8DC0EE]'}`}
                       style={{ ['--i' as string]: Math.min(i, 8) }}
                     >
                       <div className="flex items-center gap-2.5">
-                        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#5FA8E8] to-[#2E7BC4] text-white text-xs font-extrabold flex items-center justify-center shrink-0">{namaSiswa(sub).charAt(0).toUpperCase()}</span>
+                        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-[#3587D8] to-[#133E6B] text-white text-xs font-extrabold flex items-center justify-center shrink-0 shadow-sm">{namaSiswa(sub).charAt(0).toUpperCase()}</span>
                         <div className="min-w-0 flex-1">
                           <div className="flex justify-between items-center gap-2">
                             <span className="text-xs font-bold text-[#1F2A37] truncate">{namaSiswa(sub)}</span>
-                            {sub.siswa?.class_name && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80] shrink-0">{sub.siswa.class_name}</span>}
+                            {sub.siswa?.class_name && <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80] shrink-0">{sub.siswa.class_name}</span>}
                           </div>
-                          <div className="text-[11px] text-[#66748C] truncate">{(activeTab === 'evaluasi' ? 'Evaluasi · ' : '') + (sub.materi?.title || (activeTab === 'evaluasi' ? 'semua bab' : 'Materi tidak ditemukan'))}</div>
+                          <div className="text-xs text-[#66748C] truncate">{(activeTab === 'evaluasi' ? 'Evaluasi · ' : '') + (sub.materi?.title || (activeTab === 'evaluasi' ? 'semua bab' : 'Materi tidak ditemukan'))}</div>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center text-[10px] mt-2.5 gap-1">
+                      <div className="flex justify-between items-center text-[11px] mt-2.5 gap-1">
                         <span className="flex items-center gap-1 flex-wrap">
                           <span className={`font-bold px-2 py-0.5 rounded-full ${st.kelas}`}>{st.teks}</span>
                           {fSub.jumlahBerkas > 0 && (
@@ -680,18 +689,18 @@ export default function GuruKoreksiPage() {
                     </p>
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {keluarTab > 0 && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FDEAE7] text-[#C2412E]" title="Jumlah kejadian keluar tab saat mengerjakan tugas jenis ini di bab ini">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FDEAE7] text-[#C2412E]" title="Jumlah kejadian keluar tab saat mengerjakan tugas jenis ini di bab ini">
                           <Eye className="w-3 h-3" /> Keluar tab {keluarTab}×
                         </span>
                       )}
                       {sudahDinilai(selectedSub, activeTab) && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]"><ShieldCheck className="w-3 h-3" /> Nilai sudah diterbitkan</span>
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]"><ShieldCheck className="w-3 h-3" /> Nilai sudah diterbitkan</span>
                       )}
                       {forensikTerpilih && (forensikTerpilih.jumlahBerkas > 0 || adaUraian) && (
                         <button
                           type="button"
                           onClick={() => setBukaPopupForensik(true)}
-                          className={`btn-press inline-flex items-center gap-1 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border ${
+                          className={`btn-press inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border ${
                             forensikTerpilih.tingkatTertinggi === 'tinggi'
                               ? 'bg-[#FDEAE7] text-[#C2412E] border-[#FECACA]'
                               : forensikTerpilih.tingkatTertinggi === 'sedang'
@@ -748,10 +757,10 @@ export default function GuruKoreksiPage() {
                         <div className="flex justify-between items-center gap-2 mb-1">
                           <span className="text-xs font-bold text-[#2E7BC4]">
                             Butir Soal #{q.urutan || idx + 1} ({isPg ? 'Pilihan Ganda' : 'Uraian / Essay'}) &bull; Bobot {bobotSoal(q)}
-                            {q.tahap && <span className="ml-1.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">{namaTahap(q.tahap)}</span>}
+                            {q.tahap && <span className="ml-1.5 text-[11px] font-bold px-1.5 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">{namaTahap(q.tahap)}</span>}
                           </span>
                           {isPg && (
-                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${!jwb ? 'bg-gray-100 text-[#66748C]' : benar ? 'bg-[#E4F8EE] text-[#166534]' : 'bg-[#FDEAE7] text-[#991B1B]'}`}>
+                            <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${!jwb ? 'bg-gray-100 text-[#66748C]' : benar ? 'bg-[#E4F8EE] text-[#166534]' : 'bg-[#FDEAE7] text-[#991B1B]'}`}>
                               {!jwb ? 'Tidak dijawab' : benar ? 'Benar' : 'Salah'}
                             </span>
                           )}
@@ -777,7 +786,7 @@ export default function GuruKoreksiPage() {
                               mode="guru"
                             />
                             {ai && (
-                              <div className="text-[11px] p-2.5 rounded-lg bg-[#FAF7FF] border border-[#EDE9FE] text-[#4C1D95] flex gap-2">
+                              <div className="text-xs p-2.5 rounded-lg bg-[#FAF7FF] border border-[#EDE9FE] text-[#4C1D95] flex gap-2">
                                 <span className="font-extrabold tabular shrink-0">AI {ai.skor}/{ai.maks}</span>
                                 <span className="leading-relaxed">{ai.alasan}</span>
                               </div>
@@ -797,11 +806,11 @@ export default function GuruKoreksiPage() {
 
                 <PanelAi saran={saranTerpilih} memuat={aiMemuat === selectedSub.id} galat={aiGalat} onKoreksi={koreksiSatu} onPakai={pakaiSaran} adaUraian={adaUraian} />
 
-                <div className="p-5 bg-white border border-[#DCEAF7] rounded-2xl shadow-sm">
-                  <h3 className="text-sm font-bold text-[#1B4E80] mb-3 flex items-center gap-1.5"><Award className="w-4 h-4 text-[#F0932B]" /> Keputusan Nilai Akhir &amp; Umpan Balik Guru</h3>
+                <div className="relative overflow-hidden p-5 bg-gradient-to-b from-white to-[#F6FAFF] border border-[#BED8F1] rounded-2xl shadow-[0_1px_0_#fff_inset,0_12px_28px_-8px_rgba(15,45,78,0.13)]">
+                  <h3 className="text-sm font-extrabold text-[#0E2A48] mb-3 flex items-center gap-1.5"><Award className="w-4 h-4 text-[#EA881A]" /> Keputusan Nilai Akhir &amp; Umpan Balik Guru</h3>
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                      <label htmlFor="nilai-akhir" className="text-xs font-bold text-[#1F2A37] block mb-1">Nilai Akhir (0 - 100)</label>
+                      <label htmlFor="nilai-akhir" className="text-xs font-bold text-[#162232] block mb-1">Nilai Akhir (0 - 100)</label>
                       <input
                         id="nilai-akhir"
                         type="number"
@@ -812,11 +821,11 @@ export default function GuruKoreksiPage() {
                         onChange={(e) => setNilai(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && !saving && handleSaveCorrection()}
                         placeholder="Contoh: 85"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] text-sm font-bold text-[#1B4E80] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 tabular"
+                        className="input-field w-full px-3.5 py-2.5 rounded-xl text-sm font-bold text-[#0E2A48] tabular"
                       />
                     </div>
                     <div className="md:col-span-3">
-                      <label htmlFor="catatan-guru" className="text-xs font-bold text-[#1F2A37] block mb-1">Catatan &amp; Umpan Balik Personal Siswa</label>
+                      <label htmlFor="catatan-guru" className="text-xs font-bold text-[#162232] block mb-1">Catatan &amp; Umpan Balik Personal Siswa</label>
                       <textarea
                         id="catatan-guru"
                         rows={2}
@@ -829,7 +838,7 @@ export default function GuruKoreksiPage() {
                           }
                         }}
                         placeholder="Apresiasi & arahan perbaikan (Enter untuk simpan, Shift+Enter baris baru)"
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 resize-y"
+                        className="input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#162232] resize-y"
                       />
                     </div>
                   </div>
@@ -839,16 +848,16 @@ export default function GuruKoreksiPage() {
                   )}
 
                   <div className="mt-4 flex justify-between items-center gap-3 flex-wrap">
-                    <span className="text-[11px] text-[#94A3B8]">
+                    <span className="text-xs font-medium text-[#6B7C93]">
                       {berubah ? 'Ada perubahan yang belum disimpan.' : saranTerpilih && saranTerpilih.status === 'saran' ? 'Nilai baru terlihat siswa setelah Anda menyimpan (validasi).' : ' '}
                     </span>
                     <div className="flex gap-2.5">
                       {berikutnya && berikutnya.id !== selectedSub.id && (
-                        <button onClick={() => pilihSubmission(berikutnya)} className="btn-press px-4 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-[#4B5A70] text-xs font-bold hover:border-[#2E7BC4] hover:text-[#2E7BC4] flex items-center gap-1">
+                        <button onClick={() => pilihSubmission(berikutnya)} className="btn-secondary px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-1">
                           Berikutnya <ChevronRight className="w-4 h-4" />
                         </button>
                       )}
-                      <button onClick={handleSaveCorrection} disabled={saving} className="btn-press px-6 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-xs font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)] flex items-center gap-2 disabled:opacity-60">
+                      <button onClick={handleSaveCorrection} disabled={saving} className="btn-primary px-6 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 disabled:opacity-60">
                         {saving ? <Spinner /> : <Save className="w-4 h-4" />}
                         {saving ? 'Menerbitkan Nilai...' : 'Simpan & Terbitkan Nilai'}
                       </button>
@@ -966,10 +975,10 @@ export default function GuruKoreksiPage() {
                     <div className="flex items-center justify-between gap-2 flex-wrap">
                       <div>
                         <div className="text-xs font-extrabold text-[#1B4E80]">{t.label}</div>
-                        <div className="text-[11px] text-[#66748C]">{t.sublabel}</div>
+                        <div className="text-xs text-[#66748C]">{t.sublabel}</div>
                       </div>
                       <span
-                        className={`text-[11px] font-extrabold px-2.5 py-0.5 rounded-full border tabular ${
+                        className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border tabular ${
                           t.hasil.tingkat === 'tinggi'
                             ? 'bg-[#FDEAE7] text-[#C2412E] border-[#FECACA]'
                             : t.hasil.tingkat === 'sedang'
@@ -986,7 +995,7 @@ export default function GuruKoreksiPage() {
                         {t.hasil.temuan_unicode.map((u) => (
                           <span
                             key={u.kode}
-                            className="text-[11px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#FDEAE7] text-[#C2412E]"
+                            className="text-xs font-mono font-bold px-2 py-0.5 rounded-md bg-[#FDEAE7] text-[#C2412E]"
                           >
                             {u.kode} ({u.nama}) ×{u.jumlah}
                           </span>
@@ -1000,7 +1009,7 @@ export default function GuruKoreksiPage() {
                           .map((m, mi) => (
                             <div
                               key={mi}
-                              className="text-[11px] bg-white border border-[#E6EEF7] rounded-lg px-2.5 py-1.5"
+                              className="text-xs bg-white border border-[#E6EEF7] rounded-lg px-2.5 py-1.5"
                             >
                               <strong className="text-[#1B4E80]">{m.kunci}:</strong>{' '}
                               <span className="font-mono">{m.nilai}</span> — <span className="text-[#66748C]">{m.keterangan}</span>

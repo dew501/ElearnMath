@@ -36,10 +36,18 @@ export default function PengumumanSiswaPage() {
     <div className="min-h-screen flex flex-col">
       <Navbar title="Pengumuman" userRole="siswa" userName={profil?.nama ?? '…'} />
       <SiswaNav />
-      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[860px] w-full mx-auto">
-        <div className="mb-5 anim-rise">
-          <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2"><Megaphone className="w-6 h-6 text-[#F0932B]" /> Pengumuman</h1>
-          <p className="text-xs text-[#66748C] mt-1">Informasi dari guru untuk kelasmu dan dari sekolah.</p>
+      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[920px] w-full mx-auto">
+        <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+              Papan Informasi Siswa
+            </div>
+            <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-white/14 border border-white/25 flex items-center justify-center text-[#FFCA80] shadow-inner shrink-0"><Megaphone className="w-5 h-5" /></span>
+              Pengumuman
+            </h1>
+            <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5">Informasi dari guru untuk kelasmu dan dari sekolah.</p>
+          </div>
         </div>
         {!daftar ? (
           <div className="space-y-3">{[0, 1].map((i) => <Skeleton key={i} className="h-32 rounded-3xl" />)}</div>

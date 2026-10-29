@@ -20,7 +20,7 @@ const IKON: Record<string, { icon: React.ElementType; warna: string }> = {
   tugas_masuk: { icon: Inbox, warna: 'bg-[#EAF6FF] text-[#2E7BC4]' },
   nilai: { icon: Award, warna: 'bg-[#E4F8EE] text-[#15885A]' },
   izin_ulang: { icon: RotateCcw, warna: 'bg-[#FFF1DD] text-[#E37A12]' },
-  pengumuman: { icon: Megaphone, warna: 'bg-[#F3E8FF] text-[#7C3AED]' },
+  pengumuman: { icon: Megaphone, warna: 'bg-[#FFF3E2] text-[#C66B08]' },
   agenda: { icon: CalendarDays, warna: 'bg-[#FFF1DD] text-[#B45309]' },
   akun_baru: { icon: UserPlus, warna: 'bg-[#FFF1DD] text-[#E37A12]' },
   akun: { icon: UserCheck, warna: 'bg-[#E4F8EE] text-[#15885A]' },
@@ -34,7 +34,26 @@ export function NotifBell() {
   const [daftar, setDaftar] = useState<Notif[]>([]);
   const [belum, setBelum] = useState(0);
   const [buka, setBuka] = useState(false);
+  const [rendered, setRendered] = useState(false);
+  const [active, setActive] = useState(false);
   const kotak = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (buka) {
+      setRendered(true);
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setActive(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    setActive(false);
+    const t = setTimeout(() => setRendered(false), 140);
+    return () => clearTimeout(t);
+  }, [buka]);
 
   const muat = useCallback(async () => {
     const [list, hitung] = await Promise.all([
@@ -105,33 +124,48 @@ export function NotifBell() {
         }}
         aria-label={belum ? `Notifikasi, ${belum} belum dibaca` : 'Notifikasi'}
         aria-expanded={buka}
-        className="btn-press relative w-9 h-9 flex items-center justify-center rounded-xl text-[#1B4E80] hover:bg-[#EAF6FF]"
+        className={`btn-press relative w-9 h-9 flex items-center justify-center rounded-xl text-[#3E5470] ${
+          buka
+            ? 'bg-[#E8F0F9] text-[#133B63]'
+            : 'hover:bg-[#F2F7FC] hover:text-[#133B63]'
+        }`}
       >
         <Bell className={`w-[18px] h-[18px] ${belum ? 'anim-chip' : ''}`} />
         {belum > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E3543F] text-white text-[10px] font-extrabold flex items-center justify-center ring-2 ring-white tabular">
+          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 rounded-full bg-[#E04B37] text-white text-[11px] font-extrabold flex items-center justify-center ring-2 ring-white tabular">
             {belum > 9 ? '9+' : belum}
           </span>
         )}
       </button>
 
-      {buka && (
+      {(buka || rendered) && (
         <div
           role="dialog"
           aria-label="Daftar notifikasi"
-          className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[68px] sm:top-12 sm:w-[380px] bg-white rounded-2xl border border-[#DCEAF7] shadow-[0_24px_60px_rgba(15,42,71,0.22)] overflow-hidden anim-pop z-50"
+          data-open={buka && active ? 'true' : 'false'}
+          className="popover-panel origin-top sm:origin-top-right fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-[70px] sm:top-12 sm:w-[392px] bg-white rounded-2xl border border-[#D5E3F1] shadow-[0_2px_6px_rgba(15,45,78,0.06),0_24px_48px_-16px_rgba(10,31,56,0.28)] overflow-hidden z-50"
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E6EEF7]">
-            <span className="text-sm font-extrabold text-[#1B4E80]">Notifikasi</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[#E6EEF6]">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-extrabold text-[#0E2A48] tracking-[-0.01em]">Notifikasi</span>
+              {belum > 0 && (
+                <span className="tabular text-xs font-bold px-2 py-0.5 rounded-full bg-[#FFF3E2] text-[#B45309]">
+                  {belum} baru
+                </span>
+              )}
+            </div>
             {belum > 0 && (
-              <button type="button" onClick={bacaSemua} className="text-[11px] font-bold text-[#2E7BC4] hover:underline flex items-center gap-1">
-                <CheckCheck className="w-3.5 h-3.5" /> Tandai semua dibaca
+              <button type="button" onClick={bacaSemua} className="btn-press text-xs font-semibold text-[#1F63A8] hover:text-[#133B63] hover:bg-[#EEF4FB] flex items-center gap-1 px-2.5 py-1 rounded-lg">
+                <CheckCheck className="w-3.5 h-3.5" /> Tandai dibaca
               </button>
             )}
           </div>
           <div className="max-h-[60vh] overflow-y-auto">
             {daftar.length === 0 ? (
-              <p className="text-xs text-[#66748C] text-center py-10">Belum ada notifikasi.</p>
+              <div className="py-10 px-4 text-center">
+                <Bell className="w-7 h-7 text-[#BFDBFE] mx-auto mb-2" />
+                <p className="text-xs font-medium text-[#66748C]">Belum ada notifikasi.</p>
+              </div>
             ) : (
               daftar.map((n) => {
                 const g = IKON[n.jenis] ?? IKON.pengumuman;
@@ -141,17 +175,17 @@ export function NotifBell() {
                     key={n.id}
                     type="button"
                     onClick={() => pilih(n)}
-                    className={`w-full text-left flex gap-3 px-4 py-3 border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FBFF] transition-colors ${n.dibaca_at ? '' : 'bg-[#F4F9FF]'}`}
+                    className={`w-full text-left flex gap-3 px-4 py-3 border-b border-[#F1F5F9] last:border-0 hover:bg-[#F8FBFF] transition-colors duration-150 ${n.dibaca_at ? '' : 'bg-[#F2F8FF]'}`}
                   >
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${g.warna}`}>
+                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-black/[0.03] ${g.warna}`}>
                       <Icon className="w-4 h-4" />
                     </span>
                     <span className="flex-1 min-w-0">
                       <span className={`block text-xs leading-snug ${n.dibaca_at ? 'font-semibold text-[#4B5A70]' : 'font-extrabold text-[#1F2A37]'}`}>{n.judul}</span>
-                      {n.isi && <span className="block text-[11px] text-[#66748C] mt-0.5 line-clamp-2">{n.isi}</span>}
-                      <span className="block text-[10px] text-[#94A3B8] mt-1">{waktuRelatif(n.created_at)}</span>
+                      {n.isi && <span className="block text-xs text-[#66748C] mt-0.5 line-clamp-2">{n.isi}</span>}
+                      <span className="block text-[11px] text-[#94A3B8] mt-1">{waktuRelatif(n.created_at)}</span>
                     </span>
-                    {!n.dibaca_at && <span className="w-2 h-2 rounded-full bg-[#2E7BC4] mt-1.5 shrink-0" aria-label="belum dibaca" />}
+                    {!n.dibaca_at && <span className="w-2 h-2 rounded-full bg-[#2E7BC4] mt-1.5 shrink-0 ring-2 ring-[#D3ECFF]" aria-label="belum dibaca" />}
                   </button>
                 );
               })

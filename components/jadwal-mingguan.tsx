@@ -52,10 +52,10 @@ export function JadwalMingguan({
           >
             <h3 className={`text-xs font-extrabold mb-2 flex items-center justify-between ${h === hari ? 'text-[#2E7BC4]' : 'text-[#1B4E80]'}`}>
               {HARI[h]}
-              {h === hari && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[#2E7BC4] text-white">Hari ini</span>}
+              {h === hari && <span className="text-[11px] px-1.5 py-0.5 rounded-full bg-[#2E7BC4] text-white">Hari ini</span>}
             </h3>
             {isi.length === 0 ? (
-              <p className="text-[11px] text-[#94A3B8]">—</p>
+              <p className="text-xs text-[#94A3B8]">—</p>
             ) : (
               <ul className="space-y-2">
                 {isi.map((e) => {
@@ -64,17 +64,17 @@ export function JadwalMingguan({
                     <li key={e.id}>
                       <Kartu
                         {...(onPilih ? { type: 'button' as const, onClick: () => onPilih(e) } : {})}
-                        className={`w-full text-left rounded-xl bg-white border border-[#E6EEF7] p-2.5 shadow-sm ${onPilih ? 'hover:border-[#2E7BC4] transition-colors' : ''}`}
+                        className={`w-full text-left rounded-xl bg-white border border-[#E6EEF7] p-2.5 shadow-[0_1px_2px_rgba(27,78,128,0.04)] ${onPilih ? 'btn-press hover:border-[#2E7BC4]' : ''}`}
                       >
                         <span className={`block h-1 w-8 rounded-full bg-gradient-to-r mb-1.5 ${warna(tampil === 'guru' ? e.kelas_nama ?? '' : e.guru_nama ?? e.mapel)}`} />
-                        <span className="flex items-center gap-1 text-[11px] font-bold text-[#1F2A37] tabular">
+                        <span className="flex items-center gap-1 text-xs font-bold text-[#1F2A37] tabular">
                           <Clock className="w-3 h-3 text-[#94A3B8]" /> {jamPendek(e.jam_mulai)}–{jamPendek(e.jam_selesai)}
                         </span>
                         <span className="block text-xs font-extrabold text-[#1B4E80] mt-0.5">{e.mapel}</span>
-                        {(tampil !== 'kelas' && e.kelas_nama) && <span className="block text-[11px] font-semibold text-[#4B5A70]">Kelas {e.kelas_nama}</span>}
-                        {(tampil !== 'guru' && e.guru_nama) && <span className="block text-[11px] text-[#66748C] truncate">{e.guru_nama}</span>}
+                        {(tampil !== 'kelas' && e.kelas_nama) && <span className="block text-xs font-semibold text-[#4B5A70]">Kelas {e.kelas_nama}</span>}
+                        {(tampil !== 'guru' && e.guru_nama) && <span className="block text-xs text-[#66748C] truncate">{e.guru_nama}</span>}
                         {e.ruang && (
-                          <span className="flex items-center gap-1 text-[10px] text-[#94A3B8] mt-0.5">
+                          <span className="flex items-center gap-1 text-[11px] text-[#94A3B8] mt-0.5">
                             <MapPin className="w-3 h-3" /> {e.ruang}
                           </span>
                         )}

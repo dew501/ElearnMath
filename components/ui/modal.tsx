@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useId, useRef } from 'react';
+import React, { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 interface ModalProps {
@@ -25,6 +25,32 @@ export function Modal({ open, title, icon, children, actions, onClose, busy = fa
   const busyRef = useRef(busy);
   onCloseRef.current = onClose;
   busyRef.current = busy;
+
+  const [rendered, setRendered] = useState(open);
+  const [active, setActive] = useState(false);
+
+  // Bekukan isi terakhir saat dialog sedang animasi keluar agar konten tidak runtuh mendadak.
+  const snapshotRef = useRef({ title, icon, children, actions, lebar });
+  if (open) {
+    snapshotRef.current = { title, icon, children, actions, lebar };
+  }
+
+  useEffect(() => {
+    if (open) {
+      setRendered(true);
+      let raf2 = 0;
+      const raf1 = requestAnimationFrame(() => {
+        raf2 = requestAnimationFrame(() => setActive(true));
+      });
+      return () => {
+        cancelAnimationFrame(raf1);
+        cancelAnimationFrame(raf2);
+      };
+    }
+    setActive(false);
+    const t = setTimeout(() => setRendered(false), 180);
+    return () => clearTimeout(t);
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;
@@ -62,27 +88,35 @@ export function Modal({ open, title, icon, children, actions, onClose, busy = fa
     };
   }, [open]);
 
-  if (!open || typeof document === 'undefined') return null;
+  if ((!open && !rendered) || typeof document === 'undefined') return null;
+
+  const snap = open ? { title, icon, children, actions, lebar } : snapshotRef.current;
+  const dataOpen = open && active ? 'true' : 'false';
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-4">
+    <div className={`fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 ${!open ? 'pointer-events-none' : ''}`}>
       <div
-        className="absolute inset-0 bg-[#0F2A47]/45 backdrop-blur-[3px] anim-fade"
-        onClick={() => !busyRef.current && onCloseRef.current()}
+        data-open={dataOpen}
+        className="modal-backdrop absolute inset-0 bg-[#0F2A47]/45 backdrop-blur-[4px]"
+        onClick={() => open && !busyRef.current && onCloseRef.current()}
       />
       <div
         ref={panel}
         role="dialog"
         aria-modal="true"
         aria-labelledby={idJudul}
-        className={`relative w-full ${lebar === 'lg' ? 'max-w-2xl max-h-[92vh] overflow-y-auto' : 'max-w-md'} bg-white rounded-3xl shadow-[0_30px_80px_rgba(15,42,71,0.35)] p-6 sm:p-7 anim-pop`}
+        data-open={dataOpen}
+        className={`modal-panel relative w-full ${
+          snap.lebar === 'lg' ? 'sm:max-w-2xl max-h-[92vh] overflow-y-auto' : 'sm:max-w-md max-h-[90vh] overflow-y-auto'
+        } bg-gradient-to-b from-white to-[#F9FCFF] rounded-t-[28px] sm:rounded-[26px] border border-[#BFD8F0] shadow-[0_1px_0_#ffffff_inset,0_28px_72px_-12px_rgba(10,31,56,0.42)] p-6 sm:p-7`}
       >
-        {icon && <div className="mb-4">{icon}</div>}
-        <h2 id={idJudul} className="text-lg font-extrabold text-[#1B4E80] mb-2">
-          {title}
+        <div className="sm:hidden w-10 h-1 rounded-full bg-[#C6DCF2] mx-auto -mt-1.5 mb-4" aria-hidden="true" />
+        {snap.icon && <div className="mb-4">{snap.icon}</div>}
+        <h2 id={idJudul} className="text-lg font-extrabold text-[#0E2A48] tracking-[-0.015em] mb-2">
+          {snap.title}
         </h2>
-        <div className="text-sm text-[#4B5A70] leading-relaxed">{children}</div>
-        <div className="mt-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">{actions}</div>
+        <div className="text-sm text-[#435368] leading-relaxed">{snap.children}</div>
+        <div className="mt-6 pt-4 border-t border-[#DFECF9] flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5">{snap.actions}</div>
       </div>
     </div>,
     document.body

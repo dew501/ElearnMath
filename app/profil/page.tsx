@@ -23,7 +23,7 @@ interface Profil {
 }
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
 
 export default function ProfilPage() {
   const router = useRouter();
@@ -130,15 +130,15 @@ export default function ProfilPage() {
           </div>
         ) : (
           <div className="space-y-5">
-            <section className="glass-card p-6 md:p-7 flex flex-col sm:flex-row gap-5 sm:items-center relative overflow-hidden anim-rise">
+            <section className="hero-card p-6 md:p-7 flex flex-col sm:flex-row gap-5 sm:items-center relative overflow-hidden anim-rise">
               <span className="absolute -right-3 -top-10 text-[140px] font-extrabold text-[#2E7BC4]/[0.05] select-none leading-none" aria-hidden="true">∞</span>
-              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#FFB454] to-[#F0932B] text-white text-3xl font-extrabold flex items-center justify-center shadow-lg shrink-0">
+              <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-[#FFB454] to-[#F0932B] text-white text-3xl font-extrabold flex items-center justify-center shadow-[0_1px_0_rgba(255,255,255,0.3)_inset,0_10px_22px_-4px_rgba(240,147,43,0.42)] shrink-0">
                 {(profil.full_name || profil.email || '?').charAt(0).toUpperCase()}
               </div>
               <div className="min-w-0 relative">
                 <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-2xl font-extrabold text-[#1B4E80] truncate">{profil.full_name || '(tanpa nama)'}</h1>
-                  <span className="text-[10px] font-bold px-2 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] uppercase tracking-wide">{profil.role}</span>
+                  <span className="text-[11px] font-bold px-2 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] uppercase tracking-wide">{profil.role}</span>
                 </div>
                 <div className="mt-2 flex flex-wrap gap-x-5 gap-y-1.5 text-xs text-[#4B5A70]">
                   <span className="flex items-center gap-1.5"><Mail className="w-3.5 h-3.5 text-[#94A3B8]" /> {profil.email}</span>
@@ -179,7 +179,7 @@ export default function ProfilPage() {
                 <div>
                   <span className="block text-xs font-bold text-[#1F2A37] mb-1.5">Email</span>
                   <div className="px-3.5 py-2.5 rounded-xl border border-[#E6EEF7] bg-[#F8FAFC] text-sm text-[#66748C]">{profil.email}</div>
-                  <p className="text-[11px] text-[#94A3B8] mt-1">Email, peran, dan kelas diatur oleh admin sekolah.</p>
+                  <p className="text-xs text-[#94A3B8] mt-1">Email, peran, dan kelas diatur oleh admin sekolah.</p>
                 </div>
                 {galat && (
                   <div role="alert" className="p-3 rounded-xl bg-[#FDEAE7] border border-[#FECACA] text-[#991B1B] text-xs font-semibold flex gap-2 anim-shake">
@@ -214,7 +214,7 @@ export default function ProfilPage() {
                   {[1, 2, 3].map((n) => (
                     <span key={n} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${kuat >= n ? (kuat === 1 ? 'bg-[#E3543F]' : kuat === 2 ? 'bg-[#F0932B]' : 'bg-[#22B573]') : 'bg-[#E6EEF7]'}`} />
                   ))}
-                  <span className="text-[11px] font-semibold text-[#66748C] w-14 text-right">{['', 'Lemah', 'Cukup', 'Kuat'][kuat]}</span>
+                  <span className="text-xs font-semibold text-[#66748C] w-14 text-right">{['', 'Lemah', 'Cukup', 'Kuat'][kuat]}</span>
                 </div>
                 {galatSandi && (
                   <div role="alert" className="p-3 rounded-xl bg-[#FDEAE7] border border-[#FECACA] text-[#991B1B] text-xs font-semibold flex gap-2 anim-shake">

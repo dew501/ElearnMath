@@ -76,18 +76,18 @@ function DaftarAgenda() {
           {daftar.map((a) => (
             <li key={a.id} className="glass-card p-4 flex gap-4 items-start">
               <span className="w-14 shrink-0 text-center rounded-2xl bg-[#EAF6FF] border border-[#DCEAF7] py-2">
-                <span className="block text-[10px] font-bold text-[#2E7BC4] uppercase">{new Date(`${a.tanggal}T00:00:00+07:00`).toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Jakarta' })}</span>
+                <span className="block text-[11px] font-bold text-[#2E7BC4] uppercase">{new Date(`${a.tanggal}T00:00:00+07:00`).toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Jakarta' })}</span>
                 <span className="block text-xl font-extrabold text-[#1B4E80] leading-none tabular">{Number(a.tanggal.slice(8, 10))}</span>
               </span>
               <span className="min-w-0 flex-1">
                 <span className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">{JENIS_AGENDA[a.jenis] ?? a.jenis}</span>
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80]">Kelas {a.kelas?.nama ?? '-'}</span>
-                  <span className="text-[10px] font-semibold text-[#94A3B8]">{labelHariRelatif(a.tanggal)}</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">{JENIS_AGENDA[a.jenis] ?? a.jenis}</span>
+                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80]">Kelas {a.kelas?.nama ?? '-'}</span>
+                  <span className="text-[11px] font-semibold text-[#94A3B8]">{labelHariRelatif(a.tanggal)}</span>
                 </span>
                 <span className="block text-sm font-extrabold text-[#1F2A37] mt-1">{a.judul}</span>
                 {a.deskripsi && <span className="block text-xs text-[#4B5A70] mt-0.5">{a.deskripsi}</span>}
-                <span className="block text-[11px] text-[#94A3B8] mt-1">
+                <span className="block text-xs text-[#94A3B8] mt-1">
                   {tanggalPanjang(a.tanggal)}{a.jam_mulai ? ` · ${jamPendek(a.jam_mulai)}` : ''} · oleh {a.pembuat?.full_name ?? 'guru'} · dibuat {waktuRelatif(a.created_at)}
                 </span>
               </span>

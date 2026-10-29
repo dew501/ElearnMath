@@ -37,9 +37,20 @@ export default async function JadwalSiswaPage() {
       <Navbar title="Jadwal Pelajaran" userRole="siswa" userName={profil?.full_name || user.email?.split('@')[0] || 'Siswa'} />
       <SiswaNav />
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto space-y-6">
+        <div className="hero-navy p-6 sm:p-7 anim-rise">
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+              Kalender Kelas &amp; Tenggat Tugas
+            </div>
+            <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-white/14 border border-white/25 flex items-center justify-center text-[#FFCA80] shadow-inner shrink-0"><CalendarDays className="w-5 h-5" /></span>
+              Jadwal Pelajaran {kelas ? `Kelas ${kelas.nama}` : ''}
+            </h1>
+            <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5">Jadwal mingguan mata pelajaran matematika dan agenda kegiatan di kelasmu.</p>
+          </div>
+        </div>
+
         <section className="anim-rise">
-          <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2 mb-1"><CalendarDays className="w-6 h-6 text-[#2E7BC4]" /> Jadwal Pelajaran {kelas ? `Kelas ${kelas.nama}` : ''}</h1>
-          <p className="text-xs text-[#66748C] mb-4">Jadwal mingguan mata pelajaran matematika di kelasmu.</p>
           {!kelas ? (
             <div className="p-4 rounded-2xl bg-[#FFF8EC] border border-[#FBD38D] text-xs font-semibold text-[#92400E] flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 shrink-0" /> Kamu belum dimasukkan ke kelas. Hubungi admin sekolah agar jadwal dan agenda kelas tampil di sini.
@@ -51,30 +62,30 @@ export default async function JadwalSiswaPage() {
 
         {kelas && (
           <section className="anim-rise" style={{ ['--i' as string]: 1 }}>
-            <h2 className="text-xl font-extrabold text-[#1B4E80] mb-1">Agenda & Tenggat</h2>
-            <p className="text-xs text-[#66748C] mb-4">Kegiatan, tenggat tugas, dan ujian yang dibuat gurumu.</p>
+            <h2 className="text-lg font-extrabold text-[#0E2A48] mb-1">Agenda &amp; Tenggat Mendatang</h2>
+            <p className="text-xs text-[#5A6B82] mb-4">Kegiatan, tenggat tugas, dan ujian yang dibuat gurumu.</p>
             {mendatang.length === 0 ? (
-              <div className="glass-card p-8 text-center"><Inbox className="w-10 h-10 text-[#BFDBFE] mx-auto mb-2" /><p className="text-sm font-semibold text-[#1B4E80]">Tidak ada agenda mendatang.</p></div>
+              <div className="glass-card p-8 text-center"><Inbox className="w-10 h-10 text-[#9CC5EC] mx-auto mb-2" /><p className="text-sm font-bold text-[#0E2A48]">Tidak ada agenda mendatang.</p></div>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {mendatang.map((a) => {
                   const j = JENIS_AGENDA[a.jenis] ?? JENIS_AGENDA.lainnya;
                   const Ikon = j.ikon;
                   const dekat = selisihHari(a.tanggal) <= 2;
                   return (
-                    <li key={a.id} className={`glass-card p-4 flex gap-4 items-start ${dekat ? 'ring-2 ring-[#FFB454]/50' : ''}`}>
-                      <span className="w-14 shrink-0 text-center rounded-2xl bg-white border border-[#DCEAF7] py-2">
-                        <span className="block text-[10px] font-bold text-[#2E7BC4] uppercase">{new Date(`${a.tanggal}T00:00:00+07:00`).toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Jakarta' })}</span>
-                        <span className="block text-xl font-extrabold text-[#1B4E80] leading-none tabular">{Number(a.tanggal.slice(8, 10))}</span>
+                    <li key={a.id} className={`glass-card p-4 flex gap-4 items-start ${dekat ? 'ring-2 ring-[#FFB454]/60' : ''}`}>
+                      <span className="w-14 shrink-0 text-center rounded-2xl bg-gradient-to-b from-[#174678] to-[#0D2847] text-white border border-[#2C68A6]/50 py-2 shadow-sm">
+                        <span className="block text-[11px] font-bold text-[#FFCA80] uppercase">{new Date(`${a.tanggal}T00:00:00+07:00`).toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Jakarta' })}</span>
+                        <span className="block text-xl font-extrabold leading-none tabular mt-0.5">{Number(a.tanggal.slice(8, 10))}</span>
                       </span>
                       <span className="min-w-0 flex-1">
                         <span className="flex items-center gap-1.5 flex-wrap">
-                          <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${j.warna}`}><Ikon className="w-3 h-3" /> {j.label}</span>
-                          <span className={`text-[10px] font-semibold ${dekat ? 'text-[#B45309]' : 'text-[#94A3B8]'}`}>{labelHariRelatif(a.tanggal)}</span>
+                          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${j.warna}`}><Ikon className="w-3 h-3" /> {j.label}</span>
+                          <span className={`text-[11px] font-semibold ${dekat ? 'text-[#B45309]' : 'text-[#94A3B8]'}`}>{labelHariRelatif(a.tanggal)}</span>
                         </span>
                         <span className="block text-sm font-extrabold text-[#1F2A37] mt-1">{a.judul}</span>
                         {a.deskripsi && <span className="block text-xs text-[#4B5A70] mt-0.5 whitespace-pre-wrap">{a.deskripsi}</span>}
-                        <span className="block text-[11px] text-[#94A3B8] mt-1">{tanggalPanjang(a.tanggal)}{a.jam_mulai ? ` · ${jamPendek(a.jam_mulai)}` : ''}{a.materi?.chapter_number ? ` · Bab ${a.materi.chapter_number}` : ''}</span>
+                        <span className="block text-xs text-[#94A3B8] mt-1">{tanggalPanjang(a.tanggal)}{a.jam_mulai ? ` · ${jamPendek(a.jam_mulai)}` : ''}{a.materi?.chapter_number ? ` · Bab ${a.materi.chapter_number}` : ''}</span>
                       </span>
                     </li>
                   );

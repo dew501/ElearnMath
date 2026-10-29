@@ -28,7 +28,7 @@ interface Agenda {
 type Form = Omit<Agenda, 'id' | 'dibuat_oleh'> & { id: string | null };
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
 
 export default function GuruJadwalPage() {
   const supabase = createClient();
@@ -109,20 +109,20 @@ export default function GuruJadwalPage() {
     const dekat = selisihHari(a.tanggal) >= 0 && selisihHari(a.tanggal) <= 2;
     const milik = a.dibuat_oleh === profil?.id;
     return (
-      <li className={`glass-card p-4 flex gap-4 items-start ${dekat ? 'ring-2 ring-[#FFB454]/50' : ''}`}>
-        <span className="w-14 shrink-0 text-center rounded-2xl bg-white border border-[#DCEAF7] py-2">
-          <span className="block text-[10px] font-bold text-[#2E7BC4] uppercase">{new Date(`${a.tanggal}T00:00:00+07:00`).toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Jakarta' })}</span>
-          <span className="block text-xl font-extrabold text-[#1B4E80] leading-none tabular">{Number(a.tanggal.slice(8, 10))}</span>
+      <li className={`glass-card p-4 flex gap-4 items-start ${dekat ? 'ring-2 ring-[#FFB454]/60' : ''}`}>
+        <span className="w-14 shrink-0 text-center rounded-2xl bg-gradient-to-b from-[#174678] to-[#0D2847] text-white border border-[#2C68A6]/50 py-2 shadow-sm">
+          <span className="block text-[11px] font-bold text-[#FFCA80] uppercase">{new Date(`${a.tanggal}T00:00:00+07:00`).toLocaleDateString('id-ID', { month: 'short', timeZone: 'Asia/Jakarta' })}</span>
+          <span className="block text-xl font-extrabold leading-none tabular mt-0.5">{Number(a.tanggal.slice(8, 10))}</span>
         </span>
         <span className="min-w-0 flex-1">
           <span className="flex items-center gap-1.5 flex-wrap">
-            <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full ${j.warna}`}><Ikon className="w-3 h-3" /> {j.label}</span>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80]">Kelas {namaKelas(a.kelas_id)}</span>
-            <span className={`text-[10px] font-semibold ${dekat ? 'text-[#B45309]' : 'text-[#94A3B8]'}`}>{labelHariRelatif(a.tanggal)}</span>
+            <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${j.warna}`}><Ikon className="w-3 h-3" /> {j.label}</span>
+            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80]">Kelas {namaKelas(a.kelas_id)}</span>
+            <span className={`text-[11px] font-semibold ${dekat ? 'text-[#B45309]' : 'text-[#94A3B8]'}`}>{labelHariRelatif(a.tanggal)}</span>
           </span>
           <span className="block text-sm font-extrabold text-[#1F2A37] mt-1">{a.judul}</span>
           {a.deskripsi && <span className="block text-xs text-[#4B5A70] mt-0.5 whitespace-pre-wrap">{a.deskripsi}</span>}
-          <span className="block text-[11px] text-[#94A3B8] mt-1">
+          <span className="block text-xs text-[#94A3B8] mt-1">
             {tanggalPanjang(a.tanggal)}{a.jam_mulai ? ` · ${jamPendek(a.jam_mulai)}` : ''}
             {a.id_materi && ` · Bab ${materi.find((m) => m.id === a.id_materi)?.chapter_number ?? '?'}`}
             {!milik && ' · dibuat guru lain'}
@@ -143,28 +143,42 @@ export default function GuruJadwalPage() {
       <Navbar title="Jadwal & Agenda" userRole={profil?.role ?? null} userName={profil?.nama ?? '…'} />
       <StaffNav role={profil ? 'guru' : null} />
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto space-y-6">
+        <div className="hero-navy p-6 sm:p-7 anim-rise">
+          <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+                Kalender Akademik &amp; Tenggat Kelas
+              </div>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-xl bg-white/14 border border-white/25 flex items-center justify-center text-[#FFCA80] shadow-inner shrink-0">
+                  <CalendarDays className="w-5 h-5" />
+                </span>
+                Jadwal Mengajar &amp; Agenda
+              </h1>
+              <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5">Jadwal mingguan diatur oleh admin sekolah; tambahkan agenda kegiatan, tenggat tugas, atau ujian untuk kelas Anda.</p>
+            </div>
+            <button
+              type="button"
+              disabled={!kelasSaya.length}
+              onClick={() => { setGalat(null); setForm({ id: null, kelas_id: kelasSaya[0]?.id ?? '', judul: '', deskripsi: '', tanggal: tanggalIni(new Date(Date.now() + 86400000)), jam_mulai: '', jenis: 'tenggat', id_materi: '' }); }}
+              className="btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-extrabold disabled:opacity-50"
+            >
+              <Plus className="w-4 h-4" /> Tambah Agenda
+            </button>
+          </div>
+        </div>
+
         <section className="anim-rise">
-          <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2 mb-1"><CalendarDays className="w-6 h-6 text-[#2E7BC4]" /> Jadwal Mengajar Saya</h1>
-          <p className="text-xs text-[#66748C] mb-4">Diatur oleh admin sekolah. Hubungi admin bila ada perubahan jam mengajar.</p>
+          <h2 className="text-lg font-extrabold text-[#0E2A48] mb-3">Jadwal Mengajar Mingguan</h2>
           <div className="glass-card p-4 sm:p-5">
             {memuat ? <Skeleton className="h-40 rounded-2xl" /> : <JadwalMingguan entri={jadwal} tampil="guru" kosong="Belum ada jadwal mengajar untuk Anda." />}
           </div>
         </section>
 
         <section className="anim-rise" style={{ ['--i' as string]: 1 }}>
-          <div className="flex items-end justify-between gap-4 flex-wrap mb-4">
-            <div>
-              <h2 className="text-xl font-extrabold text-[#1B4E80]">Agenda Kelas</h2>
-              <p className="text-xs text-[#66748C] mt-1">Kegiatan, tenggat tugas, dan ujian untuk siswa di kelas yang Anda ampu. Siswa menerimanya di lonceng notifikasi dan menu Jadwal.</p>
-            </div>
-            <button
-              type="button"
-              disabled={!kelasSaya.length}
-              onClick={() => { setGalat(null); setForm({ id: null, kelas_id: kelasSaya[0]?.id ?? '', judul: '', deskripsi: '', tanggal: tanggalIni(new Date(Date.now() + 86400000)), jam_mulai: '', jenis: 'tenggat', id_materi: '' }); }}
-              className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-sm font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)] disabled:opacity-50"
-            >
-              <Plus className="w-4 h-4" /> Tambah Agenda
-            </button>
+          <div className="mb-4">
+            <h2 className="text-lg font-extrabold text-[#0E2A48]">Agenda Kelas Mendatang</h2>
+            <p className="text-xs text-[#5A6B82] mt-0.5">Siswa menerima agenda baru di lonceng notifikasi dan menu Jadwal.</p>
           </div>
           {!kelasSaya.length && profil && (
             <div className="mb-4 p-4 rounded-2xl bg-[#FFF8EC] border border-[#FBD38D] text-xs font-semibold text-[#92400E] flex items-center gap-2">

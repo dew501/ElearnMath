@@ -27,7 +27,7 @@ const RENTANG = [
 type Rentang = (typeof RENTANG)[number][0];
 
 const selectClass =
-  'px-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10';
+  'input-field px-3 py-2 rounded-xl text-xs font-semibold text-[#1B4E80]';
 
 const labelTugas = (l: Log) => {
   const j = l.category && isJenis(l.category) ? JENIS[l.category].singkat : 'Tugas';
@@ -99,14 +99,18 @@ export function MonitorKeluarTab({ kelasSaya }: { kelasSaya?: string[] }) {
   return (
     <div>
       <div className="flex flex-wrap items-center gap-2 mb-4">
-        <div className="flex gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm" role="tablist" aria-label="Rentang waktu">
+        <div className="surface-inset flex gap-1 p-1 rounded-xl" role="tablist" aria-label="Rentang waktu">
           {RENTANG.map(([k, label]) => (
             <button
               key={k}
               role="tab"
               aria-selected={rentang === k}
               onClick={() => setRentang(k)}
-              className={`btn-press px-3.5 py-1.5 rounded-xl text-xs font-bold ${rentang === k ? 'bg-[#2E7BC4] text-white' : 'text-[#66748C] hover:text-[#1B4E80]'}`}
+              className={`btn-press px-3.5 py-1.5 rounded-[10px] text-[13px] font-semibold ${
+                rentang === k
+                  ? 'bg-white text-[#0E2A48] shadow-[0_1px_2px_rgba(15,45,78,0.12),0_2px_6px_-2px_rgba(15,45,78,0.12)]'
+                  : 'text-[#5A6B82] hover:text-[#0E2A48]'
+              }`}
             >
               {label}
             </button>
@@ -119,24 +123,24 @@ export function MonitorKeluarTab({ kelasSaya }: { kelasSaya?: string[] }) {
             <option key={k} value={k}>{k}</option>
           ))}
         </select>
-        <button type="button" onClick={muat} className="btn-press inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-[#2E7BC4] hover:bg-[#EAF6FF]">
+        <button type="button" onClick={muat} className="btn-secondary inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold">
           <RefreshCw className="w-3.5 h-3.5" /> Muat ulang
         </button>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3.5 mb-5">
         {[
-          { label: 'Kejadian keluar tab', nilai: tersaring.length, icon: Eye, warna: 'from-[#F27E6B] to-[#C2412E]' },
-          { label: 'Siswa yang keluar tab', nilai: perSiswa.length, icon: Users, warna: 'from-[#FFB454] to-[#E37A12]' },
-          { label: 'Paling sering', nilai: perSiswa[0] ? `${perSiswa[0].nama.split(' ')[0]} (${perSiswa[0].total}×)` : '-', icon: AlertTriangle, warna: 'from-[#7C8CF8] to-[#4F5BD5]' },
+          { label: 'Kejadian keluar tab', nilai: tersaring.length, icon: Eye, warna: 'bg-[#FDECEA] text-[#C2412E]' },
+          { label: 'Siswa yang keluar tab', nilai: perSiswa.length, icon: Users, warna: 'bg-[#FFF3E2] text-[#B45309]' },
+          { label: 'Paling sering', nilai: perSiswa[0] ? `${perSiswa[0].nama.split(' ')[0]} (${perSiswa[0].total}×)` : '-', icon: AlertTriangle, warna: 'bg-[#EAEFF5] text-[#133B63]' },
         ].map(({ label, nilai, icon: Icon, warna }) => (
-          <div key={label} className="glass-card p-4 flex items-center gap-3">
-            <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${warna} text-white flex items-center justify-center shrink-0`}>
+          <div key={label} className="bento-stat p-4 flex items-center gap-3.5">
+            <span className={`w-11 h-11 rounded-xl ${warna} flex items-center justify-center shrink-0`}>
               <Icon className="w-5 h-5" />
             </span>
             <span className="min-w-0">
-              <span className="block text-lg font-extrabold text-[#1B4E80] leading-none truncate tabular">{nilai}</span>
-              <span className="block text-[11px] font-semibold text-[#66748C] mt-1">{label}</span>
+              <span className="block text-xl font-extrabold text-[#0E2A48] leading-none truncate tabular">{nilai}</span>
+              <span className="block text-xs font-bold text-[#5A6B82] mt-1.5">{label}</span>
             </span>
           </div>
         ))}
@@ -174,14 +178,14 @@ export function MonitorKeluarTab({ kelasSaya }: { kelasSaya?: string[] }) {
                 <span className="flex-1 min-w-0">
                   <span className="flex items-center gap-2">
                     <span className="text-sm font-bold text-[#1F2A37] truncate">{s.nama}</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80] shrink-0">{s.kelas}</span>
+                    <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#D3ECFF] text-[#1B4E80] shrink-0">{s.kelas}</span>
                   </span>
-                  <span className="block text-[11px] text-[#66748C] truncate mt-0.5">
+                  <span className="block text-xs text-[#66748C] truncate mt-0.5">
                     {Array.from(s.bagian.entries()).map(([b, n]) => `${b} (${n}×)`).join(' · ')}
                   </span>
                 </span>
-                <span className="text-[11px] text-[#94A3B8] shrink-0 hidden sm:block">{waktuRelatif(s.terakhir)}</span>
-                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform ${buka === s.id ? 'rotate-180' : ''}`} />
+                <span className="text-xs text-[#94A3B8] shrink-0 hidden sm:block">{waktuRelatif(s.terakhir)}</span>
+                <ChevronDown className={`w-4 h-4 text-[#94A3B8] transition-transform duration-150 ease-[var(--ease-out)] ${buka === s.id ? 'rotate-180' : ''}`} />
               </button>
               {buka === s.id && (
                 <ol className="px-4 pb-4 pl-[72px] space-y-1.5 anim-fade">

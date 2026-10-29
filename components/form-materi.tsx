@@ -39,7 +39,7 @@ const kunciBaru = () => Math.random().toString(36).slice(2, 9);
 const KOSONG: DataMateri = { bab: '', judul: '', bagian: [{ kunci: 'b1', judul: '', konten: '' }], media: '', terbit: true, tanggalBuka: '', kelasIds: [] };
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
 
 const tanpaKunci = (d: DataMateri) => JSON.stringify({ ...d, bagian: d.bagian.map(({ judul, konten }) => ({ judul, konten })) });
 const adaIsi = (html: string) => !!html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() || html.includes('<img');
@@ -242,12 +242,12 @@ export function FormMateri({ idMateri }: { idMateri: string | null }) {
           <div className="space-y-5 anim-rise">
             <div className="flex items-end justify-between gap-4 flex-wrap">
               <div>
-                <h1 className="text-2xl font-extrabold text-[#1B4E80]">{idAktif ? 'Ubah Materi' : 'Tambah Materi Baru'}</h1>
+                <h1 className="text-2xl font-extrabold text-[#1B4E80] tracking-[-0.015em]">{idAktif ? 'Ubah Materi' : 'Tambah Materi Baru'}</h1>
                 <p className="text-xs text-[#66748C] mt-1">Atur isi per subbab dan kapan materi terlihat oleh siswa.</p>
               </div>
-              <div className="grid grid-cols-2 gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm" role="tablist">
+              <div className="surface-inset grid grid-cols-2 gap-1 p-1.5 rounded-2xl" role="tablist">
                 {([['tulis', 'Tulis', PencilLine], ['pratinjau', 'Pratinjau', Eye]] as const).map(([k, label, Icon]) => (
-                  <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`btn-press flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${tab === k ? 'bg-[#2E7BC4] text-white shadow-[0_4px_12px_rgba(46,123,196,0.3)]' : 'text-[#66748C] hover:text-[#1B4E80]'}`}>
+                  <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`btn-press flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold ${tab === k ? 'bg-[#2E7BC4] text-white shadow-[0_4px_12px_rgba(46,123,196,0.28)]' : 'text-[#66748C] hover:text-[#1B4E80] hover:bg-white/70'}`}>
                     <Icon className="w-3.5 h-3.5" /> {label}
                   </button>
                 ))}
@@ -278,10 +278,10 @@ export function FormMateri({ idMateri }: { idMateri: string | null }) {
                         aria-checked={data.terbit}
                         aria-label="Terbitkan untuk siswa"
                         onClick={() => ubah({ terbit: !data.terbit })}
-                        className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 text-sm font-bold transition-colors ${data.terbit ? 'border-[#22B573] bg-[#F0FBF6] text-[#15885A]' : 'border-[#DCEAF7] bg-white text-[#66748C]'}`}
+                        className={`btn-press w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl border-2 text-sm font-bold ${data.terbit ? 'border-[#22B573] bg-[#F0FBF6] text-[#15885A]' : 'border-[#DCEAF7] bg-white text-[#66748C]'}`}
                       >
-                        <span className={`relative w-10 h-6 rounded-full transition-colors ${data.terbit ? 'bg-[#22B573]' : 'bg-[#CBD5E1]'}`}>
-                          <span className={`absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-all ${data.terbit ? 'left-5' : 'left-1'}`} />
+                        <span className={`relative w-10 h-6 rounded-full transition-colors duration-150 ${data.terbit ? 'bg-[#22B573]' : 'bg-[#CBD5E1]'}`}>
+                          <span className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow transition-transform duration-150 ease-[var(--ease-out)] ${data.terbit ? 'translate-x-4' : 'translate-x-0'}`} />
                         </span>
                         {data.terbit ? <><Eye className="w-4 h-4" /> Terbit</> : <><EyeOff className="w-4 h-4" /> Draf</>}
                       </button>
@@ -309,7 +309,7 @@ export function FormMateri({ idMateri }: { idMateri: string | null }) {
                       </div>
                     </fieldset>
                   </div>
-                  <p className="text-[11px] text-[#66748C] mt-3">
+                  <p className="text-xs text-[#66748C] mt-3">
                     {!data.terbit
                       ? 'Draf: siswa belum bisa melihat materi ini.'
                       : `Terlihat oleh ${data.kelasIds.length ? `kelas ${kelas.filter((k) => data.kelasIds.includes(k.id)).map((k) => k.nama).join(', ')}` : 'semua kelas'}${data.tanggalBuka ? ` mulai ${new Date(data.tanggalBuka).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}` : ' sekarang juga'}.`}
@@ -364,10 +364,10 @@ export function FormMateri({ idMateri }: { idMateri: string | null }) {
                         {buka ? (
                           <div className="px-3 sm:px-4 pb-4">
                             <EditorHtml key={b.kunci} initialValue={b.konten} onChange={(html) => ubahBagian(b.kunci, { konten: html })} onUploadImage={unggahGambar} />
-                            <p className="text-[11px] text-[#94A3B8] mt-2">Teks yang di-paste dari Word atau web otomatis dirapikan. Gambar maksimal 10 MB.</p>
+                            <p className="text-xs text-[#94A3B8] mt-2">Teks yang di-paste dari Word atau web otomatis dirapikan. Gambar maksimal 10 MB.</p>
                           </div>
                         ) : (
-                          <p className="px-4 pb-3 -mt-1 text-[11px] text-[#94A3B8] truncate">{adaIsi(b.konten) ? b.konten.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').slice(0, 140) : 'Belum ada isi.'}</p>
+                          <p className="px-4 pb-3 -mt-1 text-xs text-[#94A3B8] truncate">{adaIsi(b.konten) ? b.konten.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').slice(0, 140) : 'Belum ada isi.'}</p>
                         )}
                       </div>
                     );
@@ -376,7 +376,7 @@ export function FormMateri({ idMateri }: { idMateri: string | null }) {
               </>
             ) : (
               <section className="glass-card p-6 md:p-8">
-                <span className="inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] mb-3">Materi Belajar Mandiri #{data.bab || '?'}</span>
+                <span className="inline-block text-xs font-bold px-3 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] mb-3">Materi Belajar Mandiri #{data.bab || '?'}</span>
                 <h2 className="text-2xl md:text-[28px] font-extrabold text-[#1B4E80] mb-4 leading-tight">{data.judul || 'Judul materi'}</h2>
                 {bagianTampil.length === 0 ? (
                   <p className="text-sm text-[#66748C] italic">Isi materi masih kosong.</p>
@@ -403,7 +403,7 @@ export function FormMateri({ idMateri }: { idMateri: string | null }) {
             )}
 
             <div className="sticky bottom-3 z-20">
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgba(27,78,128,0.18)] p-4 space-y-3">
+              <div className="rounded-2xl bg-white/92 backdrop-blur-xl border border-white/95 shadow-[0_1px_0_#fff_inset,0_0_0_1px_rgba(27,78,128,0.08),0_16px_36px_-8px_rgba(27,78,128,0.18)] p-4 space-y-3">
                 {galat && (
                   <div role="alert" className="p-3 rounded-xl bg-[#FDEAE7] border border-[#FECACA] text-[#991B1B] text-xs font-semibold flex gap-2 anim-shake"><AlertTriangle className="w-4 h-4 shrink-0" /> {galat}</div>
                 )}

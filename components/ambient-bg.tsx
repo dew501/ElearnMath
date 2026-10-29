@@ -14,9 +14,10 @@ const GLYPHS = [
 export function AmbientBackground() {
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0" aria-hidden="true">
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_85%_50%_at_50%_-8%,rgba(255,255,255,0.88),transparent_72%)]" />
       <div className="absolute inset-0 math-grid math-grid-fade" />
-      <div className="absolute w-[500px] h-[500px] rounded-full blur-[80px] bg-gradient-to-r from-[#5FA8E8] to-[#2E7BC4] top-[-100px] left-[10%] opacity-35" />
-      <div className="absolute w-[450px] h-[450px] rounded-full blur-[80px] bg-gradient-to-r from-[#FFB454] to-[#F0932B] bottom-[-50px] right-[5%] opacity-30" />
+      <div className="absolute w-[560px] h-[560px] rounded-full blur-[110px] bg-gradient-to-br from-[#4D9BE6] to-[#1B4E80] -top-40 left-[4%] opacity-[0.14]" />
+      <div className="absolute w-[480px] h-[480px] rounded-full blur-[110px] bg-gradient-to-tr from-[#FFB454] to-[#EA881A] -bottom-24 right-[3%] opacity-[0.07]" />
       <div className="hidden md:block">
         {GLYPHS.map((g) => (
           <span

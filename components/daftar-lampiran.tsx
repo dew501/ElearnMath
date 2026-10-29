@@ -177,7 +177,7 @@ export function DaftarLampiran({
                 hasil: forensikTeks,
               })
             }
-            className="btn-press inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white border border-[#F0932B] text-[11px] font-extrabold text-[#92400E] hover:bg-[#FFF1DD]"
+            className="btn-press inline-flex items-center gap-1 px-3 py-1 rounded-lg bg-white border border-[#F0932B] text-xs font-extrabold text-[#92400E] hover:bg-[#FFF1DD]"
           >
             <Fingerprint className="w-3.5 h-3.5" /> Lihat Detail Watermark
           </button>
@@ -232,7 +232,7 @@ export function DaftarLampiran({
                       <span className="text-xs font-extrabold text-[#1F2A37] truncate max-w-[230px] sm:max-w-[320px]">
                         {item.original_name || item.name}
                       </span>
-                      <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">
                         {item.source === 'camera' ? (
                           <>
                             <Camera className="w-2.5 h-2.5" /> Foto Kamera
@@ -243,7 +243,7 @@ export function DaftarLampiran({
                       </span>
                     </div>
 
-                    <div className="text-[11px] text-[#66748C] tabular">
+                    <div className="text-xs text-[#66748C] tabular">
                       Ukuran tersimpan: <strong className="text-[#1B4E80]">{formatUkuranByte(item.compressed_size)}</strong>
                       {item.hemat_persen > 0 && (
                         <span> (dari {formatUkuranByte(item.original_size)}, hemat {String(item.hemat_persen).replace('.', ',')}%)</span>
@@ -262,7 +262,7 @@ export function DaftarLampiran({
                               lampiranTarget: item,
                             })
                           }
-                          className={`btn-press inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-extrabold transition-colors ${gayaAi.lencana}`}
+                          className={`btn-press inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-xs font-extrabold transition-colors ${gayaAi.lencana}`}
                         >
                           <gayaAi.ikon className="w-3.5 h-3.5" />
                           {gayaAi.label}
@@ -413,7 +413,7 @@ export function DaftarLampiran({
                 </div>
                 <p className="text-xs leading-relaxed font-medium">{h.ringkasan}</p>
                 {h.statistik_teks && (
-                  <p className="text-[11px] opacity-85 pt-1 tabular">
+                  <p className="text-xs opacity-85 pt-1 tabular">
                     Sumber teks teranalisis: <strong>{h.statistik_teks.sumber_teks}</strong> &bull; {h.statistik_teks.jumlah_kata} kata ({h.statistik_teks.jumlah_karakter} karakter)
                   </p>
                 )}
@@ -426,7 +426,7 @@ export function DaftarLampiran({
                     <Fingerprint className="w-4 h-4 text-[#2E7BC4]" />
                     1. Deteksi Invisible Unicode Watermark
                   </h3>
-                  <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-white border border-[#DCEAF7] text-[#4B5A70] tabular">
+                  <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-white border border-[#DCEAF7] text-[#4B5A70] tabular">
                     {h.unicode_total} karakter terdeteksi
                   </span>
                 </div>
@@ -445,7 +445,7 @@ export function DaftarLampiran({
                               {u.kode}
                             </code>
                             <span className="text-xs font-bold text-[#1F2A37]">{u.nama}</span>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">
+                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">
                               {labelKategoriUnicode(u.kategori)}
                             </span>
                           </div>
@@ -455,13 +455,13 @@ export function DaftarLampiran({
                         </div>
                         {u.contoh_konteks.length > 0 && (
                           <div className="space-y-1 pt-1">
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-[#66748C]">
+                            <span className="text-[11px] font-bold uppercase tracking-wider text-[#66748C]">
                               Posisi karakter tersembunyi dalam kalimat:
                             </span>
                             {u.contoh_konteks.map((c, idx) => (
                               <pre
                                 key={idx}
-                                className="text-[11px] font-mono bg-[#0F172A] text-[#E2E8F0] px-2.5 py-1.5 rounded-lg overflow-x-auto whitespace-pre-wrap break-all"
+                                className="text-xs font-mono bg-[#0F172A] text-[#E2E8F0] px-2.5 py-1.5 rounded-lg overflow-x-auto whitespace-pre-wrap break-all"
                               >
                                 {c}
                               </pre>
@@ -496,7 +496,7 @@ export function DaftarLampiran({
                         <div key={`${m.kunci}-${idx}`} className="rounded-xl bg-white border border-[#DCEAF7] p-3 space-y-1">
                           <div className="flex items-center justify-between gap-2 flex-wrap">
                             <span className="text-xs font-extrabold text-[#1B4E80]">{m.kunci}</span>
-                            <span className={`text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${warnaBobot}`}>
+                            <span className={`text-[11px] font-extrabold uppercase px-2 py-0.5 rounded-full border ${warnaBobot}`}>
                               {m.bobot_curiga === 'tinggi'
                                 ? 'Indikasi Kuat'
                                 : m.bobot_curiga === 'sedang'
@@ -507,7 +507,7 @@ export function DaftarLampiran({
                           <div className="text-xs font-mono bg-[#F8FAFC] border border-[#E6EEF7] rounded-lg px-2.5 py-1.5 text-[#1F2A37] break-all">
                             {m.nilai}
                           </div>
-                          <p className="text-[11px] text-[#66748C]">{m.keterangan}</p>
+                          <p className="text-xs text-[#66748C]">{m.keterangan}</p>
                         </div>
                       );
                     })}
@@ -515,7 +515,7 @@ export function DaftarLampiran({
                 )}
               </div>
 
-              <p className="text-[11px] text-[#66748C] bg-[#F4F9FF] border border-[#DCEAF7] rounded-xl px-3 py-2">
+              <p className="text-xs text-[#66748C] bg-[#F4F9FF] border border-[#DCEAF7] rounded-xl px-3 py-2">
                 <strong>Catatan penilaian:</strong> Pemindaian ini memeriksa bukti teknis pada byte mentah berkas sebelum dikompresi. Gunakan hasil forensik ini sebagai bahan pertimbangan pendukung bersama penilaian akademik Guru.
               </p>
             </div>

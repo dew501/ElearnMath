@@ -26,7 +26,7 @@ const IKON: Record<string, { icon: React.ElementType; warna: string }> = {
   masuk: { icon: LogIn, warna: 'bg-[#EAF6FF] text-[#2E7BC4]' },
   buka_materi: { icon: BookOpen, warna: 'bg-[#E4F8EE] text-[#15885A]' },
   mulai_tugas: { icon: PencilLine, warna: 'bg-[#FFF1DD] text-[#E37A12]' },
-  kumpul_tugas: { icon: Send, warna: 'bg-[#F3E8FF] text-[#6D28D9]' },
+  kumpul_tugas: { icon: Send, warna: 'bg-[#EAEFF5] text-[#133B63]' },
 };
 
 function teksAktivitas(a: Aktivitas): string {
@@ -106,39 +106,81 @@ export default function AktivitasSiswaPage() {
     <div className="min-h-screen flex flex-col">
       <Navbar title="Aktivitas Siswa" userRole={profil?.role ?? null} userName={profil?.nama ?? '…'} />
       <StaffNav role={profil ? 'guru' : null} />
-      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-5 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2"><Activity className="w-6 h-6 text-[#2E7BC4]" /> Aktivitas Siswa</h1>
-            <p className="text-xs text-[#66748C] mt-1">Siapa yang sedang online, sejauh mana penyelesaian tugas, apa yang sedang dikerjakan, dan catatan keluar tab. Diperbarui otomatis tiap 30 detik.</p>
-          </div>
-          <div className="flex items-center gap-2">
-            <select value={kelas} onChange={(e) => setKelas(e.target.value)} aria-label="Filter kelas" className="px-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80]">
-              {kelasSaya.length > 0 && <option value="saya">Kelas saya</option>}
-              <option value="semua">Semua kelas</option>
-              {daftarKelas.map((k) => <option key={k} value={k}>{k}</option>)}
-            </select>
-            <button type="button" onClick={muat} aria-label="Muat ulang" className="btn-press w-9 h-9 rounded-xl flex items-center justify-center text-[#2E7BC4] hover:bg-[#EAF6FF]"><RefreshCw className="w-4 h-4" /></button>
+      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1140px] w-full mx-auto">
+        <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+          <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#A7F3D0] mb-3">
+                <span className="w-2 h-2 rounded-full bg-[#34D399] anim-pulse" />
+                Pemantauan langsung · otomatis 30 dtk
+              </div>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-xl bg-white/14 border border-white/25 flex items-center justify-center text-[#FFCA80] shadow-inner shrink-0">
+                  <Activity className="w-5 h-5" />
+                </span>
+                Aktivitas Siswa
+              </h1>
+              <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5 max-w-2xl leading-relaxed">
+                Siapa yang sedang online, sejauh mana penyelesaian tugas, apa yang sedang dikerjakan, dan catatan keluar tab.
+              </p>
+            </div>
+            <div className="flex items-center gap-2 relative z-10">
+              <select
+                value={kelas}
+                onChange={(e) => setKelas(e.target.value)}
+                aria-label="Filter kelas"
+                className="px-3.5 py-2 rounded-xl text-xs font-bold text-white bg-white/14 hover:bg-white/20 border border-white/25 backdrop-blur-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#FFB454]/70 [&>option]:text-[#0E2A48] [&>option]:bg-white"
+              >
+                {kelasSaya.length > 0 && <option value="saya">Kelas saya</option>}
+                <option value="semua">Semua kelas</option>
+                {daftarKelas.map((k) => <option key={k} value={k}>{k}</option>)}
+              </select>
+              <button
+                type="button"
+                onClick={muat}
+                aria-label="Muat ulang"
+                className="btn-press w-9 h-9 rounded-xl flex items-center justify-center text-white bg-white/14 hover:bg-white/22 border border-white/25 shadow-sm"
+              >
+                <RefreshCw className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 mb-5">
           {[
-            { label: 'Sedang online', nilai: online, icon: Wifi, warna: 'from-[#34C98A] to-[#15885A]' },
-            { label: 'Aktif hari ini', nilai: aktifHariIni, icon: Clock, warna: 'from-[#5FA8E8] to-[#2E7BC4]' },
-            { label: 'Jumlah siswa', nilai: siswa.length, icon: Users, warna: 'from-[#7C8CF8] to-[#4F5BD5]' },
-            { label: 'Keluar tab hari ini', nilai: siswa.reduce((a, s) => a + keluarHariIni(s.id), 0), icon: Eye, warna: 'from-[#F27E6B] to-[#C2412E]' },
-          ].map(({ label, nilai, icon: Icon, warna }) => (
-            <div key={label} className="glass-card p-4 flex items-center gap-3">
-              <span className={`w-10 h-10 rounded-xl bg-gradient-to-br ${warna} text-white flex items-center justify-center shrink-0`}><Icon className="w-5 h-5" /></span>
-              <span><span className="block text-xl font-extrabold text-[#1B4E80] leading-none tabular">{rekap ? nilai : '…'}</span><span className="block text-[11px] font-semibold text-[#66748C] mt-1">{label}</span></span>
+            { label: 'Sedang online', nilai: online, icon: Wifi, warna: 'bg-[#E5F6EE] text-[#15885A]' },
+            { label: 'Aktif hari ini', nilai: aktifHariIni, icon: Clock, warna: 'bg-[#E6F0FA] text-[#1F63A8]' },
+            { label: 'Jumlah siswa', nilai: siswa.length, icon: Users, warna: 'bg-[#EAEFF5] text-[#133B63]' },
+            { label: 'Keluar tab hari ini', nilai: siswa.reduce((a, s) => a + keluarHariIni(s.id), 0), icon: Eye, warna: 'bg-[#FDECEA] text-[#C2412E]' },
+          ].map(({ label, nilai, icon: Icon, warna }, idx) => (
+            <div key={label} className="bento-stat p-4 flex items-center gap-3.5 anim-rise" style={{ ['--i' as string]: idx }}>
+              <span className={`w-11 h-11 rounded-xl ${warna} flex items-center justify-center shrink-0`}>
+                <Icon className="w-5 h-5" />
+              </span>
+              <span className="min-w-0">
+                <span className="block text-2xl font-extrabold text-[#0E2A48] leading-none tabular">{rekap ? nilai : '…'}</span>
+                <span className="block text-xs font-semibold text-[#5A6B82] mt-1.5 truncate">{label}</span>
+              </span>
             </div>
           ))}
         </div>
 
-        <div className="flex gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm w-fit mb-4" role="tablist" aria-label="Tampilan aktivitas">
+        <div className="surface-inset flex gap-1 p-1 rounded-xl w-fit mb-5" role="tablist" aria-label="Tampilan aktivitas">
           {([['siswa', 'Progres Siswa'], ['linimasa', 'Linimasa'], ['keluar', 'Keluar Tab']] as const).map(([k, label]) => (
-            <button key={k} role="tab" aria-selected={tab === k} onClick={() => setTab(k)} className={`btn-press px-4 py-2 rounded-xl text-xs font-bold ${tab === k ? 'bg-[#2E7BC4] text-white' : 'text-[#66748C] hover:text-[#1B4E80]'}`}>{label}</button>
+            <button
+              key={k}
+              role="tab"
+              aria-selected={tab === k}
+              onClick={() => setTab(k)}
+              className={`btn-press px-4 py-2 rounded-[10px] text-[13px] font-semibold ${
+                tab === k
+                  ? 'bg-white text-[#0E2A48] shadow-[0_1px_2px_rgba(15,45,78,0.12),0_2px_6px_-2px_rgba(15,45,78,0.12)]'
+                  : 'text-[#5A6B82] hover:text-[#0E2A48]'
+              }`}
+            >
+              {label}
+            </button>
           ))}
         </div>
 
@@ -148,18 +190,18 @@ export default function AktivitasSiswaPage() {
           <MonitorKeluarTab kelasSaya={kelasSaya} />
         ) : tab === 'linimasa' ? (
           linimasa.length === 0 ? (
-            <div className="glass-card p-10 text-center"><Inbox className="w-12 h-12 text-[#BFDBFE] mx-auto mb-3" /><p className="text-sm font-semibold text-[#1B4E80]">Belum ada aktivitas.</p></div>
+            <div className="glass-card p-10 text-center"><Inbox className="w-12 h-12 text-[#9CC5EC] mx-auto mb-3" /><p className="text-sm font-bold text-[#0E2A48]">Belum ada aktivitas.</p></div>
           ) : (
-            <ol className="glass-card p-5 space-y-3">
+            <ol className="glass-card p-5 divide-y divide-[#E7F0FA]">
               {linimasa.slice(0, 120).map((a) => {
                 const g = IKON[a.jenis] ?? IKON.masuk;
                 const Icon = g.icon;
                 return (
-                  <li key={a.id} className="flex items-start gap-3">
-                    <span className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${g.warna}`}><Icon className="w-4 h-4" /></span>
-                    <span className="flex-1 min-w-0 text-sm text-[#1F2A37]">
-                      <button type="button" onClick={() => setDetail(a.user_id)} className="font-bold text-[#1B4E80] hover:underline">{namaDari(a.user_id)}</button> {teksAktivitas(a)}
-                      <span className="block text-[11px] text-[#94A3B8]">{waktuRelatif(a.created_at, kini)}</span>
+                  <li key={a.id} className="flex items-start gap-3 py-3 first:pt-0 last:pb-0">
+                    <span className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ring-1 ring-black/[0.04] ${g.warna}`}><Icon className="w-4 h-4" /></span>
+                    <span className="flex-1 min-w-0 text-sm text-[#162232]">
+                      <button type="button" onClick={() => setDetail(a.user_id)} className="font-extrabold text-[#0E2A48] hover:text-[#256DB3] hover:underline">{namaDari(a.user_id)}</button> {teksAktivitas(a)}
+                      <span className="block text-xs font-medium text-[#7C8DA4] mt-0.5">{waktuRelatif(a.created_at, kini)}</span>
                     </span>
                   </li>
                 );
@@ -167,19 +209,19 @@ export default function AktivitasSiswaPage() {
             </ol>
           )
         ) : siswa.length === 0 ? (
-          <div className="glass-card p-10 text-center"><Inbox className="w-12 h-12 text-[#BFDBFE] mx-auto mb-3" /><p className="text-sm font-semibold text-[#1B4E80]">Belum ada siswa di kelas ini.</p></div>
+          <div className="glass-card p-10 text-center"><Inbox className="w-12 h-12 text-[#9CC5EC] mx-auto mb-3" /><p className="text-sm font-bold text-[#0E2A48]">Belum ada siswa di kelas ini.</p></div>
         ) : (
           <div className="glass-card overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[760px]">
-                <thead className="bg-[#F4F9FF] text-[#1B4E80] text-xs">
+                <thead className="bg-[#F5F9FD] text-[#5A6B82] text-xs border-b border-[#E1EAF4]">
                   <tr>
-                    <th className="text-left px-4 py-3">Siswa</th>
-                    <th className="text-left px-3 py-3">Status</th>
-                    {(['lkpd', 'latihan', 'evaluasi'] as JenisPengerjaan[]).map((j) => <th key={j} className="px-3 py-3">{JENIS[j].singkat}</th>)}
-                    <th className="px-3 py-3">Rata-rata</th>
-                    <th className="px-3 py-3">Keluar tab</th>
-                    <th className="text-left px-3 py-3">Aktivitas terakhir</th>
+                    <th className="text-left px-4 py-3 font-semibold whitespace-nowrap">Siswa</th>
+                    <th className="text-left px-3 py-3 font-semibold whitespace-nowrap">Status</th>
+                    {(['lkpd', 'latihan', 'evaluasi'] as JenisPengerjaan[]).map((j) => <th key={j} className="px-3 py-3 font-semibold whitespace-nowrap">{JENIS[j].singkat}</th>)}
+                    <th className="px-3 py-3 font-semibold whitespace-nowrap">Rata-rata</th>
+                    <th className="px-3 py-3 font-semibold whitespace-nowrap">Keluar tab</th>
+                    <th className="text-left px-4 py-3 font-semibold whitespace-nowrap">Aktivitas terakhir</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -188,30 +230,49 @@ export default function AktivitasSiswaPage() {
                     const akhir = terakhir(s.id);
                     const rata = rataSiswa(rekap, s.id);
                     return (
-                      <tr key={s.id} className="border-t border-[#F1F5F9] hover:bg-[#F8FBFF] cursor-pointer" onClick={() => setDetail(s.id)}>
+                      <tr key={s.id} className="border-t border-[#EDF2F8] first:border-t-0 hover:bg-[#F6FAFE] transition-colors duration-150 cursor-pointer" onClick={() => setDetail(s.id)}>
                         <td className="px-4 py-3">
-                          <span className="block font-bold text-[#1F2A37]">{s.nama}</span>
-                          <span className="block text-[11px] text-[#66748C]">Kelas {s.kelas}</span>
+                          <div className="flex items-center gap-2.5">
+                            <span className="w-8 h-8 rounded-full bg-[#E6EEF8] text-[#1B4E80] text-xs font-extrabold flex items-center justify-center shrink-0">
+                              {s.nama.charAt(0).toUpperCase()}
+                            </span>
+                            <div className="min-w-0">
+                              <span className="block font-bold text-[#162232] truncate">{s.nama}</span>
+                              <span className="block text-xs font-medium text-[#6B7C93]">Kelas {s.kelas}</span>
+                            </div>
+                          </div>
                         </td>
                         <td className="px-3 py-3">
-                          <span className={`inline-flex items-center gap-1.5 text-[11px] font-bold ${on ? 'text-[#15885A]' : 'text-[#94A3B8]'}`}>
-                            <span className={`w-2 h-2 rounded-full ${on ? 'bg-[#22B573] anim-pulse' : 'bg-[#CBD5E1]'}`} /> {on ? 'Online' : s.terakhir_aktif ? waktuRelatif(s.terakhir_aktif, kini) : 'Belum pernah'}
+                          <span className={`inline-flex items-center gap-1.5 whitespace-nowrap text-xs font-semibold px-2.5 py-1 rounded-full ${
+                            on
+                              ? 'bg-[#E5F6EE] text-[#127A4D]'
+                              : 'bg-[#F1F5F9] text-[#64748B]'
+                          }`}>
+                            <span className={`w-2 h-2 rounded-full ${on ? 'bg-[#1B9E65] anim-pulse' : 'bg-[#CBD5E1]'}`} /> {on ? 'Online' : s.terakhir_aktif ? waktuRelatif(s.terakhir_aktif, kini) : 'Belum pernah'}
                           </span>
                         </td>
                         {(['lkpd', 'latihan', 'evaluasi'] as JenisPengerjaan[]).map((j) => {
                           const n = progres(s.id, j);
                           return (
                             <td key={j} className="px-3 py-3 text-center">
-                              <span className="text-xs font-bold tabular text-[#1B4E80]">{n}/{nBab}</span>
-                              <span className="block h-1.5 w-14 mx-auto rounded-full bg-[#E6EEF7] mt-1 overflow-hidden"><span className="block h-full bg-[#2E7BC4] rounded-full" style={{ width: `${nBab ? (n / nBab) * 100 : 0}%` }} /></span>
+                              <span className="text-xs font-bold tabular text-[#0E2A48]">{n}/{nBab}</span>
+                              <span className="block h-1.5 w-14 mx-auto rounded-full bg-[#E6EEF7] mt-1 overflow-hidden"><span className="block h-full bg-[#2B78C6] rounded-full transition-[width] duration-300 ease-[var(--ease-out)]" style={{ width: `${nBab ? (n / nBab) * 100 : 0}%` }} /></span>
                             </td>
                           );
                         })}
-                        <td className="px-3 py-3 text-center font-extrabold tabular text-[#1B4E80]">{rata ?? '–'}</td>
                         <td className="px-3 py-3 text-center">
-                          {totalKeluar(s.id) ? <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${totalKeluar(s.id) >= 3 ? 'bg-[#FDEAE7] text-[#C2412E]' : 'bg-[#FFF1DD] text-[#B45309]'}`}>{totalKeluar(s.id)}×</span> : <span className="text-[#CBD5E1]">–</span>}
+                          {rata != null ? (
+                            <span className="inline-block px-2.5 py-0.5 rounded-md bg-[#EEF4FA] font-extrabold tabular text-[#0E2A48] text-xs">
+                              {rata}
+                            </span>
+                          ) : (
+                            <span className="text-[#94A3B8]">–</span>
+                          )}
                         </td>
-                        <td className="px-3 py-3 text-xs text-[#4B5A70]">{akhir ? <>{teksAktivitas(akhir)} <span className="text-[#94A3B8]">· {waktuRelatif(akhir.created_at, kini)}</span></> : <span className="text-[#94A3B8]">—</span>}</td>
+                        <td className="px-3 py-3 text-center">
+                          {totalKeluar(s.id) ? <span className={`tabular text-xs font-bold px-2 py-0.5 rounded-full ${totalKeluar(s.id) >= 3 ? 'bg-[#FDECEA] text-[#C2412E]' : 'bg-[#FFF3E2] text-[#B45309]'}`}>{totalKeluar(s.id)}×</span> : <span className="text-[#CBD5E1]">–</span>}
+                        </td>
+                        <td className="px-4 py-3 text-xs text-[#435368]">{akhir ? <>{teksAktivitas(akhir)} <span className="text-[#8798AE]">· {waktuRelatif(akhir.created_at, kini)}</span></> : <span className="text-[#94A3B8]">—</span>}</td>
                       </tr>
                     );
                   })}
@@ -227,7 +288,7 @@ export default function AktivitasSiswaPage() {
         lebar="lg"
         onClose={() => setDetail(null)}
         title={siswaDetail ? `${siswaDetail.nama} · Kelas ${siswaDetail.kelas}` : ''}
-        actions={<button type="button" data-autofocus onClick={() => setDetail(null)} className="btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] text-white font-bold text-sm">Tutup</button>}
+        actions={<button type="button" data-autofocus onClick={() => setDetail(null)} className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm">Tutup</button>}
       >
         {siswaDetail && rekap && (
           <div className="space-y-4">

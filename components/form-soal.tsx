@@ -37,8 +37,8 @@ interface Form {
 export type AwalSoal = Partial<Soal> & { category: JenisPengerjaan };
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
-const kecil = 'px-2.5 py-2 rounded-lg border border-[#DCEAF7] bg-white text-xs text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4]';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
+const kecil = 'input-field px-2.5 py-2 rounded-lg text-xs text-[#1F2A37]';
 const KATEGORI = Object.keys(JENIS) as JenisPengerjaan[];
 const KUNCI_GRUP_FORMAT = new Set(GRUP_FORMAT_ESSAY.map((g) => g.kunci));
 
@@ -215,9 +215,9 @@ export function FormSoal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-1 p-1 bg-[#F4F9FF] border border-[#DCEAF7] rounded-xl" role="radiogroup" aria-label="Tipe soal">
+          <div className="surface-inset grid grid-cols-2 gap-1 p-1 rounded-xl" role="radiogroup" aria-label="Tipe soal">
             {(['pg', 'essay'] as const).map((t) => (
-              <button key={t} type="button" role="radio" aria-checked={form.tipe === t} onClick={() => ubah({ tipe: t })} className={`py-2 rounded-lg text-xs font-bold transition-colors ${form.tipe === t ? 'bg-white text-[#1B4E80] shadow-sm' : 'text-[#66748C]'}`}>
+              <button key={t} type="button" role="radio" aria-checked={form.tipe === t} onClick={() => ubah({ tipe: t })} className={`btn-press py-2 rounded-lg text-xs font-bold ${form.tipe === t ? 'bg-white text-[#1B4E80] shadow-[0_2px_6px_rgba(27,78,128,0.08)]' : 'text-[#66748C] hover:text-[#1B4E80]'}`}>
                 {t === 'pg' ? 'Pilihan Ganda' : 'Uraian / Essay'}
               </button>
             ))}
@@ -239,7 +239,7 @@ export function FormSoal({
                     <div key={h} className={`flex items-center gap-2 p-1.5 pr-2 rounded-xl border transition-colors ${kunci ? 'border-[#22B573] bg-[#F0FBF6]' : 'border-[#E6EEF7]'}`}>
                       <label className="flex items-center gap-1.5 pl-1.5 cursor-pointer shrink-0" title={`Jadikan ${h} kunci jawaban`}>
                         <input type="radio" name="kunci" checked={kunci} onChange={() => ubah({ kunci_jawaban: h })} className="w-4 h-4 accent-[#22B573]" aria-label={`Kunci jawaban ${h}`} />
-                        <span className={`w-6 h-6 rounded-md flex items-center justify-center text-[11px] font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9] text-[#4B5A70]'}`}>{h}</span>
+                        <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9] text-[#4B5A70]'}`}>{h}</span>
                       </label>
                       <input type="text" aria-label={`Opsi ${h}`} value={form[kolom]} onChange={(e) => ubah({ [kolom]: e.target.value } as Partial<Form>)} placeholder={h === 'A' || h === 'B' ? `Opsi ${h} (wajib)` : `Opsi ${h} (opsional)`} className="flex-1 px-3 py-2 rounded-lg text-sm focus:outline-none bg-transparent" />
                     </div>
@@ -257,7 +257,7 @@ export function FormSoal({
                   <button
                     type="button"
                     onClick={() => ubah({ format_file: [...FORMAT_DEFAULT_ESSAY], ekstensi_kustom: '' })}
-                    className="text-[11px] font-bold text-[#2E7BC4] hover:underline"
+                    className="text-xs font-bold text-[#2E7BC4] hover:underline"
                   >
                     Reset ke bawaan (PDF, Word, Gambar)
                   </button>
@@ -295,7 +295,7 @@ export function FormSoal({
                 </div>
                 {!form.format_file.includes('*') && (
                   <div>
-                    <label htmlFor="f-ekstensi-kustom" className="block text-[11px] font-bold text-[#4B5A70] mb-1">
+                    <label htmlFor="f-ekstensi-kustom" className="block text-xs font-bold text-[#4B5A70] mb-1">
                       Ekstensi khusus lainnya <span className="font-normal text-[#94A3B8]">(opsional, pisahkan dengan koma — mis. .ggb, .py)</span>
                     </label>
                     <input
@@ -308,7 +308,7 @@ export function FormSoal({
                     />
                   </div>
                 )}
-                <p className="text-[11px] text-[#66748C]">
+                <p className="text-xs text-[#66748C]">
                   Aktif untuk siswa: <strong className="text-[#1B4E80]">{labelFormatFile(daftarFormatAkhir(form))}</strong>. Bila semua pilihan dikosongkan, sistem otomatis memakai bawaan (PDF, Word, Gambar). Siswa juga dapat memotret jawaban langsung dari kamera web.
                 </p>
               </div>
@@ -327,7 +327,7 @@ export function FormSoal({
                     </button>
                   </div>
                   {form.rubrik.length === 0 ? (
-                    <p className="text-[11px] text-[#66748C]">Belum ada kriteria. Tanpa rubrik, AI menilai berdasarkan jawaban ideal; mesin cadangan hanya membandingkan kemiripan.</p>
+                    <p className="text-xs text-[#66748C]">Belum ada kriteria. Tanpa rubrik, AI menilai berdasarkan jawaban ideal; mesin cadangan hanya membandingkan kemiripan.</p>
                   ) : (
                     <div className="space-y-2">
                       {form.rubrik.map((k, i) => (
@@ -351,7 +351,7 @@ export function FormSoal({
                           </button>
                         </div>
                       ))}
-                      <p className="text-[11px] text-[#66748C]">
+                      <p className="text-xs text-[#66748C]">
                         Angka: hasil yang harus muncul (koma/titik desimal & pecahan dikenali). Kata kunci: pisahkan alternatif dengan &ldquo;|&rdquo;. Total poin rubrik {totalRubrik} akan disesuaikan ke bobot soal ({form.bobot || 0}).
                       </p>
                     </div>
@@ -373,7 +373,7 @@ export function FormSoal({
           </div>
 
           {form.id && (
-            <p className="text-[11px] text-[#B45309] bg-[#FFF8EC] border border-[#FBD38D] rounded-lg px-3 py-2">
+            <p className="text-xs text-[#B45309] bg-[#FFF8EC] border border-[#FBD38D] rounded-lg px-3 py-2">
               Mengubah kunci atau bobot tidak menghitung ulang skor yang sudah tersimpan; guru tetap bisa menyesuaikan nilai akhir di panel koreksi.
             </p>
           )}

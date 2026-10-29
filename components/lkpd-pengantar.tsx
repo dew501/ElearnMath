@@ -13,12 +13,12 @@ export function PengantarLkpd({ judul, tujuan, petunjuk, jumlahTahap }: { judul?
       {judul && (
         <div className="md:col-span-2 text-sm font-extrabold text-[#1B4E80] flex items-center gap-2">
           <Footprints className="w-4 h-4 text-[#F0932B]" /> {judul}
-          {jumlahTahap ? <span className="text-[11px] font-bold text-[#94A3B8]">· {jumlahTahap} tahap kegiatan</span> : null}
+          {jumlahTahap ? <span className="text-xs font-bold text-[#94A3B8]">· {jumlahTahap} tahap kegiatan</span> : null}
         </div>
       )}
       {t.length > 0 && (
         <div className="p-4 rounded-2xl bg-[#F4F9FF] border border-[#DCEAF7]">
-          <div className="text-[11px] font-extrabold text-[#2E7BC4] uppercase tracking-wider mb-2 flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Tujuan pembelajaran</div>
+          <div className="text-xs font-extrabold text-[#2E7BC4] uppercase tracking-wider mb-2 flex items-center gap-1.5"><Target className="w-3.5 h-3.5" /> Tujuan pembelajaran</div>
           <ul className="space-y-1.5 text-[13px] text-[#1F2A37] list-disc pl-5">
             {t.map((x, i) => <li key={i}>{x}</li>)}
           </ul>
@@ -26,7 +26,7 @@ export function PengantarLkpd({ judul, tujuan, petunjuk, jumlahTahap }: { judul?
       )}
       {p.length > 0 && (
         <div className="p-4 rounded-2xl bg-[#FFF8EC] border border-[#FBD38D]">
-          <div className="text-[11px] font-extrabold text-[#B45309] uppercase tracking-wider mb-2 flex items-center gap-1.5"><ListOrdered className="w-3.5 h-3.5" /> Petunjuk pengerjaan</div>
+          <div className="text-xs font-extrabold text-[#B45309] uppercase tracking-wider mb-2 flex items-center gap-1.5"><ListOrdered className="w-3.5 h-3.5" /> Petunjuk pengerjaan</div>
           <ol className="space-y-1.5 text-[13px] text-[#1F2A37] list-decimal pl-5">
             {p.map((x, i) => <li key={i}>{x}</li>)}
           </ol>
@@ -45,7 +45,7 @@ export function KepalaTahap({ nomor, total, judul, instruksi, selesai }: { nomor
         <span className="text-sm leading-none tabular">{nomor}</span>
       </span>
       <div className="min-w-0">
-        <div className="text-[11px] font-bold text-[#94A3B8] uppercase tracking-wider">Tahap {nomor} dari {total}</div>
+        <div className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider">Tahap {nomor} dari {total}</div>
         <h2 className="text-lg font-extrabold text-[#1B4E80] leading-tight">{judul}</h2>
         {instruksi && <p className="text-[13px] text-[#4B5A70] mt-1 leading-relaxed whitespace-pre-wrap">{instruksi}</p>}
       </div>

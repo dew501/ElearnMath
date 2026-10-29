@@ -98,26 +98,41 @@ export default function BankSoalPage() {
       <Navbar title="Bank Soal" userRole={profil?.role ?? null} userName={profil?.nama ?? '…'} />
       <StaffNav role={profil?.role ?? null} />
 
-      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1040px] w-full mx-auto">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-5 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80]">Bank Soal</h1>
-            <p className="text-xs text-[#66748C] mt-1">Soal umum dipakai semua bab; soal khusus hanya muncul di bab yang dipilih. Soal uraian bisa diberi rubrik untuk koreksi AI.</p>
+      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1060px] w-full mx-auto">
+        <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+          <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+                <ListChecks className="w-3.5 h-3.5" /> Repositori Soal &amp; Rubrik AI
+              </div>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em]">Bank Soal</h1>
+              <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5 max-w-2xl">Soal umum dipakai semua bab; soal khusus hanya muncul di bab yang dipilih. Soal uraian bisa diberi rubrik untuk koreksi AI.</p>
+            </div>
+            <button type="button" onClick={bukaBaru} className="btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-extrabold">
+              <Plus className="w-4 h-4" /> Tambah Soal
+            </button>
           </div>
-          <button type="button" onClick={bukaBaru} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-sm font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)]">
-            <Plus className="w-4 h-4" /> Tambah Soal
-          </button>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 mb-5 anim-rise" style={{ ['--i' as string]: 1 }}>
-          <div className="grid grid-cols-3 gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm" role="tablist">
+          <div className="surface-inset grid grid-cols-3 gap-1 p-1 rounded-xl" role="tablist">
             {KATEGORI.map((k) => (
-              <button key={k} role="tab" aria-selected={kategori === k} onClick={() => setKategori(k)} className={`btn-press px-4 py-2 rounded-xl text-xs font-bold ${kategori === k ? 'bg-[#2E7BC4] text-white shadow-[0_4px_12px_rgba(46,123,196,0.3)]' : 'text-[#66748C] hover:text-[#1B4E80]'}`}>
+              <button
+                key={k}
+                role="tab"
+                aria-selected={kategori === k}
+                onClick={() => setKategori(k)}
+                className={`btn-press px-4 py-2 rounded-[10px] text-[13px] font-semibold ${
+                  kategori === k
+                    ? 'bg-white text-[#0E2A48] shadow-[0_1px_2px_rgba(15,45,78,0.12),0_2px_6px_-2px_rgba(15,45,78,0.12)]'
+                    : 'text-[#5A6B82] hover:text-[#0E2A48]'
+                }`}
+              >
                 {JENIS[k].singkat}
               </button>
             ))}
           </div>
-          <select value={cakupan} onChange={(e) => setCakupan(e.target.value)} aria-label="Filter cakupan soal" className="w-full sm:w-auto sm:max-w-xs min-w-0 truncate px-3 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80] focus:outline-none focus:border-[#2E7BC4]">
+          <select value={cakupan} onChange={(e) => setCakupan(e.target.value)} aria-label="Filter cakupan soal" className="input-field w-full sm:w-auto sm:max-w-xs min-w-0 truncate px-3.5 py-2.5 rounded-xl text-xs font-bold text-[#0E2A48]">
             <option value="semua">Semua soal</option>
             <option value="umum">Hanya soal umum</option>
             {materi.map((m) => <option key={m.id} value={m.id}>Khusus Bab {m.chapter_number}: {m.title}</option>)}
@@ -127,7 +142,7 @@ export default function BankSoalPage() {
         {!memuat && materi.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-5" aria-label="Total bobot per bab">
             {totalPerBab.map(({ m, total }) => (
-              <span key={m.id} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border ${total === 100 ? 'bg-[#E4F8EE] border-[#BBF7D0] text-[#15885A]' : 'bg-[#FFF1DD] border-[#FBD38D] text-[#B45309]'}`} title="Total bobot = soal umum + soal khusus bab">
+              <span key={m.id} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border ${total === 100 ? 'bg-[#E4F8EE] border-[#BBF7D0] text-[#15885A]' : 'bg-[#FFF1DD] border-[#FBD38D] text-[#B45309]'}`} title="Total bobot = soal umum + soal khusus bab">
                 {total === 100 ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertTriangle className="w-3.5 h-3.5" />}
                 {JENIS[kategori].singkat} Bab {m.chapter_number}: total bobot {total}
                 {total !== 100 && ' (disarankan 100)'}
@@ -171,17 +186,17 @@ export default function BankSoalPage() {
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#2E7BC4] to-[#1B4E80] text-white text-xs font-extrabold flex items-center justify-center tabular">{q.urutan ?? '-'}</span>
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#1B4E80]">{q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian'}</span>
-                            <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">Bobot {bobotSoal(q)}</span>
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#1B4E80]">{q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian'}</span>
+                            <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">Bobot {bobotSoal(q)}</span>
                             {q.tahap && (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]"><Layers className="w-3 h-3" /> {namaTahap(q.tahap)}</span>
+                              <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]"><Layers className="w-3 h-3" /> {namaTahap(q.tahap)}</span>
                             )}
                             {q.tipe !== 'pg' && (
                               <>
-                                <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${q.rubrik?.length ? 'bg-[#F3E8FF] text-[#6D28D9]' : q.jawaban_ideal ? 'bg-[#F3E8FF] text-[#7C3AED]' : 'bg-[#F1F5F9] text-[#94A3B8]'}`}>
+                                <span className={`inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${q.rubrik?.length ? 'bg-[#F3E8FF] text-[#6D28D9]' : q.jawaban_ideal ? 'bg-[#F3E8FF] text-[#7C3AED]' : 'bg-[#F1F5F9] text-[#94A3B8]'}`}>
                                   <Sparkles className="w-3 h-3" /> {q.rubrik?.length ? `Rubrik ${q.rubrik.length} kriteria` : q.jawaban_ideal ? 'Ada jawaban ideal' : 'Belum ada bahan koreksi AI'}
                                 </span>
-                                <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4]" title="Format lampiran berkas/foto yang diterima dari siswa">
+                                <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4]" title="Format lampiran berkas/foto yang diterima dari siswa">
                                   <Paperclip className="w-3 h-3" /> Berkas: {labelFormatFile(q.format_file)}
                                 </span>
                               </>
@@ -205,7 +220,7 @@ export default function BankSoalPage() {
                               const kunci = (q.kunci_jawaban ?? '').toUpperCase() === h;
                               return (
                                 <div key={h} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${kunci ? 'bg-[#E4F8EE] text-[#15885A] font-bold' : 'bg-white/70 text-[#4B5A70]'}`}>
-                                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[10px] font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9]'}`}>{h}</span>
+                                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9]'}`}>{h}</span>
                                   {t}
                                   {kunci && <CheckCircle2 className="w-3.5 h-3.5 ml-auto" />}
                                 </div>

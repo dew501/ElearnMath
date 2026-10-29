@@ -11,7 +11,7 @@ export function MediaMateri({ url, judul }: { url: string | null | undefined; ju
     return (
       <div className="bg-white border border-[#DCEAF7] rounded-2xl p-4 sm:p-5 mb-6 shadow-[0_4px_15px_rgba(0,0,0,0.03)]">
         <div className="flex items-center gap-2 mb-3">
-          <span className="inline-flex items-center gap-1 text-[11px] bg-[#FEE2E2] text-[#DC2626] px-2.5 py-1 rounded-full font-bold">
+          <span className="inline-flex items-center gap-1 text-xs bg-[#FEE2E2] text-[#DC2626] px-2.5 py-1 rounded-full font-bold">
             <PlayCircle className="w-3.5 h-3.5" /> Video Pembelajaran
           </span>
           <strong className="text-sm text-[#1B4E80] truncate">{judul}</strong>

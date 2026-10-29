@@ -9,7 +9,7 @@ import { KONTAK_ADMIN } from '@/lib/akses';
 import { AlertCircle, ArrowLeft, Eye, EyeOff, GraduationCap, Hourglass, Presentation, UserPlus } from 'lucide-react';
 
 const inputClass =
-  'w-full px-3.5 py-3 rounded-xl border border-[#DCEAF7] bg-[#F8FAFC] text-sm text-[#1F2A37] placeholder:text-[#A0AEC0] focus:bg-white focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
+  'input-field w-full px-3.5 py-3 rounded-xl bg-[#F8FBFF] text-sm text-[#1F2A37] placeholder:text-[#94A3B8] focus:bg-white';
 
 function pesanDaftar(err: { message?: string; code?: string; status?: number }): string {
   const m = err.message || '';
@@ -94,7 +94,7 @@ export default function DaftarPage() {
   return (
     <AuthCard title="Buat akun baru" subtitle="Daftar sebagai siswa atau guru. Akun aktif setelah disetujui admin sekolah.">
       <form onSubmit={kirim} noValidate className="space-y-4">
-        <div className="grid grid-cols-2 gap-1 p-1 bg-[#F4F9FF] border border-[#DCEAF7] rounded-xl" role="radiogroup" aria-label="Daftar sebagai">
+        <div className="surface-inset grid grid-cols-2 gap-1 p-1 rounded-xl" role="radiogroup" aria-label="Daftar sebagai">
           {([
             ['siswa', 'Siswa', GraduationCap],
             ['guru', 'Guru', Presentation],
@@ -105,7 +105,11 @@ export default function DaftarPage() {
               role="radio"
               aria-checked={peran === k}
               onClick={() => setPeran(k)}
-              className={`py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 transition-colors ${peran === k ? 'bg-white text-[#1B4E80] shadow-sm' : 'text-[#66748C]'}`}
+              className={`btn-press py-2.5 rounded-lg text-xs font-bold flex items-center justify-center gap-1.5 ${
+                peran === k
+                  ? 'bg-white text-[#1B4E80] shadow-[0_1px_3px_rgba(27,78,128,0.08),0_0_0_1px_rgba(27,78,128,0.04)]'
+                  : 'text-[#66748C] hover:text-[#1B4E80]'
+              }`}
             >
               <Icon className="w-4 h-4" /> {label}
             </button>

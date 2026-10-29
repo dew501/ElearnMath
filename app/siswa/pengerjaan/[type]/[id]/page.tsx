@@ -609,7 +609,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
             <p className="text-sm text-[#66748C] mb-6">{pesan}</p>
             <button
               onClick={() => setMuatUlang((n) => n + 1)}
-              className="btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm"
+              className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm"
             >
               Coba Lagi
             </button>
@@ -621,7 +621,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
             <div className="text-5xl font-extrabold text-[#2E7BC4]/25 mb-3" aria-hidden="true">∅</div>
             <h2 className="text-lg font-extrabold text-[#1B4E80] mb-2">Tugas tidak tersedia</h2>
             <p className="text-sm text-[#66748C] mb-6">{pesan}</p>
-            <Link href="/siswa/materi" className="btn-press inline-block px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm">
+            <Link href="/siswa/materi" className="btn-primary inline-block px-5 py-2.5 rounded-xl font-bold text-sm">
               Lihat Daftar Modul
             </Link>
           </div>
@@ -646,7 +646,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               <circle cx="32" cy="32" r="30" fill="#E4F8EE" />
               <path d="M19 33 l9 9 l17 -19" fill="none" stroke="#15885A" strokeWidth="5" strokeLinecap="round" strokeLinejoin="round" className="anim-draw" />
             </svg>
-            <h2 className="text-2xl font-extrabold text-[#1B4E80] mb-2">Pengumpulan Berhasil!</h2>
+            <h2 className="text-2xl font-extrabold text-[#113355] mb-2">Pengumpulan Berhasil!</h2>
             <p className="text-sm text-[#66748C] max-w-md mx-auto mb-7">
               Lembar jawaban Anda sudah tersimpan. Guru akan memeriksa{adaUraian ? ' jawaban uraian' : ''} dan memvalidasi nilai akhirnya; kabarnya muncul di lonceng notifikasi.
             </p>
@@ -662,7 +662,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
             <div className="flex justify-center gap-3 flex-wrap">
               <Link
                 href={linkMateri}
-                className="btn-press px-6 py-3 rounded-xl bg-white border border-[#DCEAF7] text-[#1B4E80] font-bold text-sm shadow-sm hover:border-[#2E7BC4]"
+                className="btn-secondary px-6 py-3 rounded-xl font-bold text-sm"
               >
                 Kembali ke Halaman Materi
               </Link>
@@ -672,14 +672,14 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                   setHasil(null);
                   setMuatUlang((n) => n + 1);
                 }}
-                className="btn-press px-6 py-3 rounded-xl bg-white border border-[#DCEAF7] text-[#1B4E80] font-bold text-sm shadow-sm hover:border-[#2E7BC4] inline-flex items-center gap-1.5"
+                className="btn-secondary px-6 py-3 rounded-xl font-bold text-sm inline-flex items-center gap-1.5"
               >
                 <ListChecks className="w-4 h-4" /> Lihat Hasil per Soal
               </button>
               {lanjutan && (
                 <Link
                   href={`/siswa/pengerjaan/${lanjutan.jenis}/${id}`}
-                  className="btn-press group px-6 py-3 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm shadow-[0_8px_20px_rgba(46,123,196,0.3)] inline-flex items-center gap-1.5"
+                  className="btn-primary group px-6 py-3 rounded-xl font-bold text-sm inline-flex items-center gap-1.5"
                 >
                   {lanjutan.label}
                   <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
@@ -692,11 +692,11 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
         {/* TINJAU: SUDAH DIKUMPULKAN */}
         {fase === 'tinjau' && kirimanLama && (
           <div className="space-y-5">
-            <div className="glass-card p-6 md:p-8 anim-rise">
+            <div className="hero-card p-6 md:p-8 anim-rise">
               <div className="flex items-center gap-2 text-[#15885A] text-xs font-bold uppercase tracking-wider mb-2">
                 <CheckCircle2 className="w-4 h-4" /> Sudah Dikumpulkan
               </div>
-              <h1 className="text-2xl font-extrabold text-[#1B4E80] mb-1">{judul}</h1>
+              <h1 className="text-2xl font-extrabold tracking-[-0.015em] text-[#1B4E80] mb-1">{judul}</h1>
               <p className="text-xs text-[#66748C]">
                 {judulMateri} &bull; Dikumpulkan {formatTanggal(kirimanLama.waktu)}
               </p>
@@ -757,14 +757,14 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
         {/* FORM LEMBAR PENGERJAAN */}
         {fase === 'form' && (
           <form onSubmit={handleSubmit} noValidate className="space-y-5">
-            <div className="glass-card p-6 md:p-8 anim-rise">
+            <div className="hero-card p-6 md:p-8 anim-rise">
               <div className="flex justify-between items-center mb-2">
                 <span className="text-xs font-bold text-[#2E7BC4] uppercase tracking-wider">Lembar Penugasan Siswa</span>
                 <span className="text-xs font-semibold text-[#66748C] flex items-center gap-1">
                   <Clock className="w-3.5 h-3.5" /> Bebas Waktu
                 </span>
               </div>
-              <h1 className="text-2xl font-extrabold text-[#1B4E80] mb-2">{judul}</h1>
+              <h1 className="text-2xl font-extrabold tracking-[-0.015em] text-[#1B4E80] mb-2">{judul}</h1>
               <p className="text-xs text-[#66748C] leading-relaxed">
                 {judulMateri} &bull; Bacalah setiap butir pertanyaan dengan seksama. Jawaban hanya bisa dikumpulkan satu kali, dan draf tersimpan otomatis di perangkat ini.
               </p>
@@ -776,7 +776,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                   {kelompok.map((g, gi) => {
                     const lengkap = g.soal.every((q) => apakahSoalTerjawab(q, answers[q.id], attachments[q.id]));
                     return (
-                      <a key={g.kunci} href={`#tahap-${g.kunci}`} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold border transition-colors ${lengkap ? 'bg-[#E4F8EE] border-[#BBF7D0] text-[#15885A]' : 'bg-white border-[#DCEAF7] text-[#1B4E80] hover:border-[#2E7BC4]'}`}>
+                      <a key={g.kunci} href={`#tahap-${g.kunci}`} className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-colors ${lengkap ? 'bg-[#E4F8EE] border-[#BBF7D0] text-[#15885A]' : 'bg-white border-[#DCEAF7] text-[#1B4E80] hover:border-[#2E7BC4]'}`}>
                         {lengkap ? <Check className="w-3 h-3" strokeWidth={3} /> : <span className="tabular">{gi + 1}.</span>} {g.judul}
                       </a>
                     );
@@ -830,22 +830,22 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                   <legend className="sr-only">Soal nomor {idx + 1}</legend>
                   <div className="flex justify-between items-center gap-3 mb-4">
                     <div className="flex items-center gap-2.5">
-                      <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#2E7BC4] to-[#1B4E80] text-white flex items-center justify-center font-extrabold text-sm shadow-sm tabular">
+                      <span className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#194B7C] to-[#0E2A48] text-white flex items-center justify-center font-extrabold text-sm shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_6px_14px_-3px_rgba(14,42,72,0.35)] tabular">
                         {idx + 1}
                       </span>
-                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#EAF6FF] text-[#1B4E80]">
+                      <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-[#EAF5FF] border border-[#BFDBFE] text-[#113355]">
                         Soal #{idx + 1} &bull; {q.tipe === 'pg' ? 'Pilihan Ganda' : 'Uraian / Essay'}
                       </span>
                     </div>
                     <span className="flex items-center gap-2">
                       {dijawab ? (
-                        <span className="anim-chip inline-flex items-center gap-1 text-[11px] font-bold text-[#15885A] bg-[#E4F8EE] px-2 py-0.5 rounded-full">
+                        <span className="anim-chip inline-flex items-center gap-1 text-xs font-bold text-[#15885A] bg-[#E4F8EE] border border-[#B5EBD0] px-2.5 py-0.5 rounded-full">
                           <Check className="w-3 h-3" strokeWidth={3} /> Terjawab
                         </span>
                       ) : sorot ? (
-                        <span className="text-[11px] font-bold text-[#E37A12] bg-[#FFF1DD] px-2 py-0.5 rounded-full">Belum dijawab</span>
+                        <span className="text-xs font-bold text-[#E37A12] bg-[#FFF1DD] border border-[#FBD38D] px-2.5 py-0.5 rounded-full">Belum dijawab</span>
                       ) : null}
-                      <span className="text-xs font-semibold text-[#66748C] hidden sm:inline">Bobot: {q.bobot || 50} Poin</span>
+                      <span className="text-xs font-semibold text-[#5B6B82] hidden sm:inline tabular">Bobot: {q.bobot || 50} Poin</span>
                     </span>
                   </div>
 
@@ -861,10 +861,10 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                         return (
                           <label
                             key={optKey}
-                            className={`group flex items-center gap-3 p-3.5 rounded-xl border-2 text-sm cursor-pointer transition-all duration-200 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[#2E7BC4]/20 ${
+                            className={`group flex items-center gap-3 p-3.5 rounded-xl border-2 text-sm cursor-pointer transition-[background-color,border-color,box-shadow,transform] duration-150 ease-[var(--ease-out)] active:scale-[0.99] has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-[#2E7BC4]/20 ${
                               isSelected
-                                ? 'bg-[#EAF6FF] border-[#2E7BC4] text-[#1B4E80] font-bold shadow-[0_6px_18px_rgba(46,123,196,0.15)]'
-                                : 'bg-white/80 border-[#E6EEF7] text-[#1F2A37] hover:border-[#BFDBFE] hover:bg-white hover:-translate-y-px'
+                                ? 'bg-[#E8F4FF] border-[#256FB8] text-[#113355] font-bold shadow-[0_1px_0_#ffffff_inset,0_8px_20px_-4px_rgba(37,111,184,0.22)]'
+                                : 'bg-white/90 border-[#DCEAF7] text-[#1F2A37] sm:hover:border-[#8BBCE8] sm:hover:bg-white sm:hover:-translate-y-px'
                             }`}
                           >
                             <input
@@ -876,14 +876,14 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                               className="sr-only"
                             />
                             <span
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 transition-colors ${
-                                isSelected ? 'bg-[#2E7BC4] text-white anim-chip' : 'bg-[#F1F5F9] text-[#66748C] group-hover:bg-[#D3ECFF] group-hover:text-[#1B4E80]'
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 transition-colors duration-150 ${
+                                isSelected ? 'bg-gradient-to-br from-[#2E7ECF] to-[#174A7E] text-white shadow-sm anim-chip' : 'bg-[#F0F6FC] text-[#5B6B82] sm:group-hover:bg-[#D3ECFF] sm:group-hover:text-[#113355]'
                               }`}
                             >
                               {optKey}
                             </span>
                             <span className="flex-1">{optText}</span>
-                            {isSelected && <Check className="w-4 h-4 text-[#2E7BC4] anim-chip shrink-0" strokeWidth={3} />}
+                            {isSelected && <Check className="w-4 h-4 text-[#256FB8] anim-chip shrink-0" strokeWidth={3} />}
                           </label>
                         );
                       })}
@@ -897,9 +897,9 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                         value={answers[q.id] || ''}
                         onChange={(e) => handleSelectAnswer(q.id, e.target.value)}
                         placeholder="Ketikkan uraian langkah perhitungan di sini, atau lampirkan foto/berkas jawaban di bawah (cukup salah satu atau keduanya)..."
-                        className="w-full p-4 rounded-xl border-2 border-[#E6EEF7] bg-white/90 text-sm text-[#1F2A37] leading-relaxed focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all resize-y"
+                        className="input-field w-full p-4 rounded-xl border-2 border-[#E2EEF9] bg-white/95 text-sm text-[#1F2A37] leading-relaxed resize-y"
                       />
-                      <div className="text-[11px] text-[#94A3B8] text-right mt-1 tabular">{(answers[q.id] || '').length} karakter</div>
+                      <div className="text-xs text-[#94A3B8] text-right mt-1 tabular">{(answers[q.id] || '').length} karakter</div>
                       {jenis && userId && (
                         <InputLampiranEssay
                           supabase={supabase}
@@ -922,7 +922,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
             })}
                 {bertahap && gi < kelompok.length - 1 && (
                   <div className="flex justify-end">
-                    <a href={`#tahap-${kelompok[gi + 1].kunci}`} className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-white border border-[#DCEAF7] text-[13px] font-bold text-[#1B4E80] hover:border-[#2E7BC4]">
+                    <a href={`#tahap-${kelompok[gi + 1].kunci}`} className="btn-secondary inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[13px] font-bold">
                       Lanjut ke {kelompok[gi + 1].judul} <ChevronDown className="w-4 h-4" />
                     </a>
                   </div>
@@ -932,7 +932,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
 
             {/* Bar kirim menempel di bawah: progres + status draf */}
             <div className="sticky bottom-3 z-20 pt-2">
-              <div className="rounded-2xl bg-white/90 backdrop-blur-xl border border-white shadow-[0_10px_40px_rgba(27,78,128,0.18)] p-4 space-y-3">
+              <div className="relative overflow-hidden rounded-2xl bg-white/95 backdrop-blur-xl border border-[#BFD8F0] shadow-[0_1px_0_#ffffff_inset,0_18px_46px_-8px_rgba(14,42,72,0.24)] p-4 space-y-3">
                 {pesanBar && (
                   <div role="alert" className="p-3 rounded-xl bg-[#FDEAE7] border border-[#FECACA] text-[#991B1B] text-xs font-semibold leading-relaxed flex gap-2 anim-shake">
                     <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -941,21 +941,21 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                 )}
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center gap-2 text-xs font-semibold text-[#4B5A70]">
+                    <div className="flex justify-between items-center gap-2 text-xs font-bold text-[#113355]">
                       <span className="tabular">
                         {terjawab} dari {questions.length} soal terjawab
                       </span>
-                      <span className="text-[11px] text-[#94A3B8] flex items-center gap-1" aria-live="polite">
+                      <span className="text-xs font-semibold text-[#66748C] flex items-center gap-1" aria-live="polite">
                         {tersimpanPada && (
                           <>
-                            <CloudUpload className="w-3.5 h-3.5" /> Draf tersimpan {jam(tersimpanPada)}
+                            <CloudUpload className="w-3.5 h-3.5 text-[#2E7BC4]" /> Draf tersimpan {jam(tersimpanPada)}
                           </>
                         )}
                       </span>
                     </div>
                     <div className="h-2 rounded-full bg-[#E6EEF7] mt-2 overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#5FA8E8] to-[#2E7BC4] transition-[width] duration-500 ease-out"
+                        className="h-full rounded-full bg-gradient-to-r from-[#5FA8E8] to-[#1D5A96] transition-[width] duration-300 ease-[var(--ease-out)]"
                         style={{ width: `${questions.length ? (terjawab / questions.length) * 100 : 0}%` }}
                       />
                     </div>
@@ -963,7 +963,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                   <button
                     type="submit"
                     disabled={submitting}
-                    className="btn-press py-3 px-6 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2468A9] hover:from-[#1B4E80] hover:to-[#1B4E80] text-white font-bold text-sm shadow-[0_8px_20px_rgba(46,123,196,0.3)] flex items-center justify-center gap-2 disabled:opacity-60"
+                    className="btn-primary py-3 px-6 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
                   >
                     Kumpulkan Jawaban Sekarang
                     <Send className="w-4 h-4" />
@@ -981,7 +981,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
         onClose={() => setKonfirmasi(false)}
         title={mengulang ? 'Kumpulkan ulang jawaban?' : 'Kumpulkan jawaban sekarang?'}
         icon={
-          <div className="w-12 h-12 rounded-2xl bg-[#FFF1DD] flex items-center justify-center">
+          <div className="w-12 h-12 rounded-2xl bg-[#FFF1DD] border border-[#FBD38D] flex items-center justify-center">
             <Send className="w-6 h-6 text-[#E37A12]" />
           </div>
         }
@@ -991,7 +991,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               type="button"
               onClick={() => setKonfirmasi(false)}
               disabled={submitting}
-              className="btn-press px-5 py-2.5 rounded-xl border border-[#DCEAF7] text-[#4B5A70] font-bold text-sm hover:bg-[#F4F9FF] disabled:opacity-50"
+              className="btn-secondary px-5 py-2.5 rounded-xl font-bold text-sm"
             >
               Periksa Lagi
             </button>
@@ -1000,7 +1000,7 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
               data-autofocus
               onClick={kirimJawaban}
               disabled={submitting}
-              className="btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70"
+              className="btn-primary px-5 py-2.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2"
             >
               {submitting && <Spinner />}
               {submitting ? 'Mengirim...' : 'Ya, Kumpulkan'}

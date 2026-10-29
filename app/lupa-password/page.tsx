@@ -86,14 +86,14 @@ export default function LupaPasswordPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="nama@siswa.sekolah.id"
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-[#DCEAF7] bg-[#F8FAFC] text-sm focus:bg-white focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all"
+                className="input-field w-full pl-10 pr-4 py-3 rounded-xl bg-[#F8FBFF] text-sm focus:bg-white"
               />
             </div>
           </div>
           <button
             type="submit"
             disabled={loading}
-            className="btn-press w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2468A9] hover:from-[#1B4E80] hover:to-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 disabled:opacity-70"
+            className="btn-press w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2263A3] hover:from-[#2468A9] hover:to-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_10px_22px_-4px_rgba(46,123,196,0.38)] disabled:opacity-70"
           >
             {loading && <Spinner />}
             {loading ? 'Mengirim...' : 'Kirim Tautan Reset'}

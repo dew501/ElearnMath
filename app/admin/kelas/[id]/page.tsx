@@ -134,7 +134,7 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
       <Navbar title={kelas ? `Kelas ${kelas.nama}` : 'Anggota Kelas'} userRole="admin" userName={profil?.nama ?? '…'} />
       <StaffNav role="admin" />
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto">
-        <Link href="/admin/kelas" className="btn-press inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-white/80 border border-[#DCEAF7] text-[#66748C] hover:text-[#2E7BC4] mb-5">
+        <Link href="/admin/kelas" className="btn-secondary inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl mb-5">
           <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Daftar Kelas
         </Link>
 
@@ -146,11 +146,14 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
           </div>
         ) : (
           <div className="space-y-5">
-            <section className="glass-card p-6 anim-rise">
-              <h1 className="text-2xl font-extrabold text-[#1B4E80]">Kelas {kelas.nama}</h1>
-              <p className="text-xs text-[#66748C] mt-1">
-                {[kelas.tingkat && `Tingkat ${kelas.tingkat}`, kelas.tahun_ajaran].filter(Boolean).join(' · ')} · {siswaKelas.length} siswa · {guruKelas.length} guru pengampu
-              </p>
+            <section className="hero-navy p-6 md:p-7 anim-rise">
+              <div className="relative z-10">
+                <span className="inline-block text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-1 rounded-full bg-white/[0.12] border border-white/20 text-[#FFD28E] mb-2">Anggota &amp; Jadwal Rombel</span>
+                <h1 className="text-2xl md:text-[28px] font-extrabold text-white tracking-[-0.02em]">Kelas {kelas.nama}</h1>
+                <p className="text-xs md:text-sm text-[#D2E6FA]/90 mt-1">
+                  {[kelas.tingkat && `Tingkat ${kelas.tingkat}`, kelas.tahun_ajaran].filter(Boolean).join(' · ')} · <span className="tabular font-bold text-white">{siswaKelas.length}</span> siswa · <span className="tabular font-bold text-white">{guruKelas.length}</span> guru pengampu
+                </p>
+              </div>
             </section>
 
             {pendaftar.length > 0 && (
@@ -158,13 +161,13 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
                 <h2 className="text-sm font-extrabold text-[#B45309] flex items-center gap-2 mb-3"><Hourglass className="w-4 h-4" /> Pendaftar yang memilih kelas ini</h2>
                 <ul className="space-y-2">
                   {pendaftar.map((u) => (
-                    <li key={u.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/80">
+                    <li key={u.id} className="flex items-center justify-between gap-3 p-3 rounded-xl bg-white/90 border border-[#FBD38D]">
                       <span className="min-w-0">
                         <span className="block text-sm font-bold text-[#1F2A37] truncate">{u.full_name}</span>
-                        <span className="block text-[11px] text-[#66748C] truncate">{u.email} · {u.role}</span>
+                        <span className="block text-xs text-[#66748C] truncate">{u.email} · {u.role}</span>
                       </span>
-                      <button type="button" disabled={sibuk === u.id} onClick={() => setujuiPendaftar(u.id)} className="btn-press inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#22B573] text-white text-xs font-bold disabled:opacity-60">
-                        {sibuk === u.id ? <Spinner className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />} Setujui & masukkan
+                      <button type="button" disabled={sibuk === u.id} onClick={() => setujuiPendaftar(u.id)} className="btn-emerald inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold">
+                        {sibuk === u.id ? <Spinner className="w-3.5 h-3.5" /> : <Check className="w-3.5 h-3.5" />} Setujui &amp; masukkan
                       </button>
                     </li>
                   ))}
@@ -174,16 +177,16 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr,1.4fr] gap-5">
               <section className="glass-card p-5 anim-rise" style={{ ['--i' as string]: 1 }}>
-                <h2 className="text-sm font-extrabold text-[#1B4E80] flex items-center gap-2 mb-3"><UserCheck className="w-4 h-4" /> Guru Pengampu</h2>
+                <h2 className="text-sm font-extrabold text-[#113355] pb-2.5 mb-3 border-b border-[#E3EFFC] flex items-center gap-2"><UserCheck className="w-4 h-4 text-[#15885A]" /> Guru Pengampu</h2>
                 {guruKelas.length === 0 ? (
                   <p className="text-xs text-[#C2412E] font-semibold mb-3 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Belum ada guru. Guru pengampu menerima notifikasi tugas dari siswa kelas ini.</p>
                 ) : (
                   <ul className="space-y-2 mb-3">
                     {guruKelas.map((g) => (
-                      <li key={g.id} className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white/80 border border-[#E6EEF7]">
+                      <li key={g.id} className="flex items-center justify-between gap-2 p-3 rounded-xl bg-white/90 border border-[#DCEAF7]">
                         <span className="min-w-0">
                           <span className="block text-sm font-bold text-[#1F2A37] truncate">{g.full_name}</span>
-                          <span className="block text-[11px] text-[#66748C] truncate">{g.email}</span>
+                          <span className="block text-xs text-[#66748C] truncate">{g.email}</span>
                         </span>
                         <button type="button" disabled={sibuk === g.id} onClick={() => lepasGuru(g.id)} aria-label={`Lepas ${g.full_name}`} className="btn-press w-8 h-8 rounded-lg flex items-center justify-center text-[#C2412E] hover:bg-[#FDEAE7] disabled:opacity-50"><X className="w-4 h-4" /></button>
                       </li>
@@ -191,20 +194,20 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
                   </ul>
                 )}
                 <div className="flex gap-2">
-                  <select value={guruBaru} onChange={(e) => setGuruBaru(e.target.value)} aria-label="Pilih guru" className="flex-1 min-w-0 px-3 py-2 rounded-xl border border-[#DCEAF7] bg-white text-xs font-semibold text-[#1B4E80]">
+                  <select value={guruBaru} onChange={(e) => setGuruBaru(e.target.value)} aria-label="Pilih guru" className="input-field flex-1 min-w-0 px-3 py-2 rounded-xl text-xs font-semibold text-[#1B4E80]">
                     <option value="">Pilih guru…</option>
                     {calonGuru.map((g) => <option key={g.id} value={g.id}>{g.full_name}</option>)}
                   </select>
-                  <button type="button" onClick={tambahGuru} disabled={!guruBaru || sibuk === 'guru'} className="btn-press inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-[#2E7BC4] text-white text-xs font-bold disabled:opacity-50">
+                  <button type="button" onClick={tambahGuru} disabled={!guruBaru || sibuk === 'guru'} className="btn-primary inline-flex items-center gap-1 px-3 py-2 rounded-xl text-xs font-bold">
                     {sibuk === 'guru' ? <Spinner className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />} Tambah
                   </button>
                 </div>
               </section>
 
               <section className="glass-card p-5 anim-rise" style={{ ['--i' as string]: 2 }}>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <h2 className="text-sm font-extrabold text-[#1B4E80] flex items-center gap-2"><Users className="w-4 h-4" /> Siswa ({siswaKelas.length})</h2>
-                  <button type="button" onClick={() => { setPilihan([]); setCari(''); setTambahSiswa(true); }} className="btn-press inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[#2E7BC4] text-white text-xs font-bold">
+                <div className="flex items-center justify-between gap-2 pb-2.5 mb-3 border-b border-[#E3EFFC]">
+                  <h2 className="text-sm font-extrabold text-[#113355] flex items-center gap-2"><Users className="w-4 h-4 text-[#2E7BC4]" /> Siswa (<span className="tabular">{siswaKelas.length}</span>)</h2>
+                  <button type="button" onClick={() => { setPilihan([]); setCari(''); setTambahSiswa(true); }} className="btn-primary inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold">
                     <Plus className="w-3.5 h-3.5" /> Tambah Siswa
                   </button>
                 </div>
@@ -216,7 +219,7 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
                       <li key={s.id} className="flex items-center justify-between gap-2 py-2.5">
                         <span className="min-w-0">
                           <span className="block text-sm font-bold text-[#1F2A37] truncate">{s.full_name}</span>
-                          <span className="block text-[11px] text-[#66748C] truncate">{s.nomor_induk ? `NIS ${s.nomor_induk} · ` : ''}{s.email}</span>
+                          <span className="block text-xs text-[#66748C] truncate">{s.nomor_induk ? `NIS ${s.nomor_induk} · ` : ''}{s.email}</span>
                         </span>
                         <button type="button" disabled={sibuk === s.id} onClick={() => keluarkanSiswa(s.id)} className="btn-press shrink-0 inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold text-[#C2412E] hover:bg-[#FDEAE7] disabled:opacity-50">
                           <X className="w-3.5 h-3.5" /> Keluarkan
@@ -257,9 +260,9 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
         <div className="space-y-3">
           <div className="relative">
             <Search className="w-4 h-4 text-[#94A3B8] absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-            <input type="search" data-autofocus value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, email, atau NIS..." aria-label="Cari siswa" className="w-full pl-9 pr-3 py-2 rounded-xl border border-[#DCEAF7] text-sm" />
+            <input type="search" data-autofocus value={cari} onChange={(e) => setCari(e.target.value)} placeholder="Cari nama, email, atau NIS..." aria-label="Cari siswa" className="input-field w-full pl-9 pr-3 py-2 rounded-xl text-sm text-[#1F2A37]" />
           </div>
-          <p className="text-[11px] text-[#66748C]">Siswa yang sudah di kelas lain akan dipindahkan ke kelas ini.</p>
+          <p className="text-xs text-[#66748C]">Siswa yang sudah di kelas lain akan dipindahkan ke kelas ini.</p>
           <ul className="max-h-[340px] overflow-y-auto divide-y divide-[#F1F5F9] rounded-xl border border-[#E6EEF7]">
             {calonSiswa.length === 0 && <li className="p-4 text-xs text-[#66748C] text-center">Tidak ada siswa yang cocok.</li>}
             {calonSiswa.map((s) => {
@@ -267,13 +270,13 @@ export default function AnggotaKelasPage({ params }: { params: { id: string } })
               const lama = namaKelas(di(s.id));
               return (
                 <li key={s.id}>
-                  <label className={`flex items-center gap-3 p-3 cursor-pointer ${dipilih ? 'bg-[#EAF6FF]' : 'hover:bg-[#F8FBFF]'}`}>
+                  <label className={`flex items-center gap-3 p-3 cursor-pointer transition-colors duration-150 ${dipilih ? 'bg-[#EAF6FF]' : 'hover:bg-[#F8FBFF]'}`}>
                     <input type="checkbox" checked={dipilih} onChange={() => setPilihan((p) => (dipilih ? p.filter((x) => x !== s.id) : [...p, s.id]))} className="w-4 h-4 accent-[#2E7BC4]" />
                     <span className="flex-1 min-w-0">
                       <span className="block text-sm font-semibold text-[#1F2A37] truncate">{s.full_name}</span>
-                      <span className="block text-[11px] text-[#66748C] truncate">{s.email}</span>
+                      <span className="block text-xs text-[#66748C] truncate">{s.email}</span>
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${lama ? 'bg-[#FFF1DD] text-[#B45309]' : 'bg-[#F1F5F9] text-[#66748C]'}`}>{lama ? `di ${lama}` : 'tanpa kelas'}</span>
+                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full shrink-0 ${lama ? 'bg-[#FFF1DD] text-[#B45309]' : 'bg-[#F1F5F9] text-[#66748C]'}`}>{lama ? `di ${lama}` : 'tanpa kelas'}</span>
                   </label>
                 </li>
               );

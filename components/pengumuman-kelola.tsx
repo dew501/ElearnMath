@@ -33,7 +33,7 @@ interface FormData {
 }
 
 const inputClass =
-  'w-full px-3.5 py-2.5 rounded-xl border border-[#DCEAF7] bg-white text-sm text-[#1F2A37] focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all';
+  'input-field w-full px-3.5 py-2.5 rounded-xl text-sm text-[#1F2A37]';
 
 /** Kartu pengumuman (dipakai juga di halaman siswa). */
 export function KartuPengumuman({ p, namaKelas, aksi }: { p: Pengumuman; namaKelas: (id: string) => string; aksi?: React.ReactNode }) {
@@ -41,28 +41,28 @@ export function KartuPengumuman({ p, namaKelas, aksi }: { p: Pengumuman; namaKel
   const panjang = p.isi.length > 260 || p.isi.split('\n').length > 4;
   const diubah = new Date(p.updated_at).getTime() - new Date(p.created_at).getTime() > 60_000;
   return (
-    <article className={`glass-card p-5 anim-rise ${p.penting ? 'ring-2 ring-[#F27E6B]/40' : ''}`}>
+    <article className={`glass-card p-5 anim-rise border-l-4 ${p.penting ? 'border-l-[#E04B37] ring-1 ring-[#F27E6B]/30' : 'border-l-[#256DB3]'}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <div className="flex items-center gap-2 flex-wrap mb-1">
+          <div className="flex items-center gap-2 flex-wrap mb-1.5">
             {p.penting && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#FDEAE7] text-[#C2412E] uppercase tracking-wide">
+              <span className="inline-flex items-center gap-1 text-[11px] font-extrabold px-2.5 py-0.5 rounded-full bg-[#FDEAE7] border border-[#F7C3BC] text-[#C2412E]">
                 <Star className="w-3 h-3" /> Penting
               </span>
             )}
             {p.kelas_ids?.length ? (
               p.kelas_ids.map((k) => (
-                <span key={k} className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#1B4E80]">
+                <span key={k} className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#EDF5FD] border border-[#CDE1F6] text-[#133B63]">
                   <School className="w-3 h-3" /> {namaKelas(k)}
                 </span>
               ))
             ) : (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]">
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-[#E3F7EE] border border-[#B4E7CE] text-[#127A4D]">
                 <Globe2 className="w-3 h-3" /> Seluruh sekolah
               </span>
             )}
           </div>
-          <h3 className="text-base font-extrabold text-[#1B4E80] leading-snug">{p.judul}</h3>
+          <h3 className="text-base font-extrabold text-[#0E2A48] leading-snug">{p.judul}</h3>
         </div>
         {aksi && <div className="flex gap-1 shrink-0">{aksi}</div>}
       </div>
@@ -72,7 +72,7 @@ export function KartuPengumuman({ p, namaKelas, aksi }: { p: Pengumuman; namaKel
           {lengkap ? 'Tampilkan lebih sedikit' : 'Baca selengkapnya'}
         </button>
       )}
-      <div className="mt-3 text-[11px] text-[#94A3B8] flex flex-wrap gap-x-2">
+      <div className="mt-3 text-xs text-[#94A3B8] flex flex-wrap gap-x-2">
         <span>
           {p.nama_pembuat ?? 'Sekolah'}
           {p.peran_pembuat && <span className="uppercase font-bold ml-1">· {p.peran_pembuat}</span>}
@@ -176,23 +176,31 @@ export function PengumumanKelola({ profil }: { profil: ProfilRingkas }) {
 
   return (
     <div>
-      <div className="flex items-end justify-between gap-4 flex-wrap mb-5 anim-rise">
-        <div>
-          <h1 className="text-2xl font-extrabold text-[#1B4E80] flex items-center gap-2">
-            <Megaphone className="w-6 h-6 text-[#F0932B]" /> Pengumuman
-          </h1>
-          <p className="text-xs text-[#66748C] mt-1">
-            {admin ? 'Buat pengumuman untuk seluruh sekolah atau kelas tertentu, dan pantau pengumuman yang dibuat guru.' : 'Pengumuman untuk kelas yang Anda ampu. Siswa menerimanya di lonceng notifikasi.'}
-          </p>
+      <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+        <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+              Papan Informasi Resmi
+            </div>
+            <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em] flex items-center gap-2.5">
+              <span className="w-9 h-9 rounded-xl bg-white/14 border border-white/25 flex items-center justify-center text-[#FFCA80] shadow-inner shrink-0">
+                <Megaphone className="w-5 h-5" />
+              </span>
+              Pengumuman
+            </h1>
+            <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5 max-w-2xl">
+              {admin ? 'Buat pengumuman untuk seluruh sekolah atau kelas tertentu, dan pantau pengumuman yang dibuat guru.' : 'Pengumuman untuk kelas yang Anda ampu. Siswa menerimanya di lonceng notifikasi.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={bukaBaru}
+            disabled={!admin && !profil.kelas.length}
+            className="btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-extrabold disabled:opacity-50"
+          >
+            <Plus className="w-4 h-4" /> Buat Pengumuman
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={bukaBaru}
-          disabled={!admin && !profil.kelas.length}
-          className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-sm font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)] disabled:opacity-50"
-        >
-          <Plus className="w-4 h-4" /> Buat Pengumuman
-        </button>
       </div>
 
       {!admin && !profil.kelas.length && (
@@ -201,14 +209,18 @@ export function PengumumanKelola({ profil }: { profil: ProfilRingkas }) {
         </div>
       )}
 
-      <div className="flex gap-1 p-1.5 bg-white/90 border border-[#DCEAF7] rounded-2xl shadow-sm w-fit mb-5" role="tablist" aria-label="Saring pengumuman">
+      <div className="surface-inset flex gap-1 p-1 rounded-xl w-fit mb-5" role="tablist" aria-label="Saring pengumuman">
         {FILTER.map(([k, label]) => (
           <button
             key={k}
             role="tab"
             aria-selected={filter === k}
             onClick={() => setFilter(k)}
-            className={`btn-press px-4 py-2 rounded-xl text-xs font-bold ${filter === k ? 'bg-[#2E7BC4] text-white shadow-[0_4px_12px_rgba(46,123,196,0.3)]' : 'text-[#66748C] hover:text-[#1B4E80]'}`}
+            className={`btn-press px-4 py-2 rounded-[10px] text-[13px] font-semibold ${
+              filter === k
+                ? 'bg-white text-[#0E2A48] shadow-[0_1px_2px_rgba(15,45,78,0.12),0_2px_6px_-2px_rgba(15,45,78,0.12)]'
+                : 'text-[#5A6B82] hover:text-[#0E2A48]'
+            }`}
           >
             {label}
           </button>
@@ -290,7 +302,7 @@ export function PengumumanKelola({ profil }: { profil: ProfilRingkas }) {
             <fieldset>
               <legend className="block text-xs font-bold mb-1.5">Ditujukan untuk</legend>
               {admin && (
-                <div className="grid grid-cols-2 gap-1 p-1 bg-[#F4F9FF] border border-[#DCEAF7] rounded-xl mb-2" role="radiogroup" aria-label="Sasaran">
+                <div className="surface-inset grid grid-cols-2 gap-1 p-1 rounded-xl mb-2" role="radiogroup" aria-label="Sasaran">
                   {[
                     [true, 'Seluruh sekolah'],
                     [false, 'Kelas tertentu'],
@@ -301,7 +313,7 @@ export function PengumumanKelola({ profil }: { profil: ProfilRingkas }) {
                       role="radio"
                       aria-checked={form.sekolah === v}
                       onClick={() => setForm({ ...form, sekolah: v as boolean })}
-                      className={`py-2 rounded-lg text-xs font-bold ${form.sekolah === v ? 'bg-white text-[#1B4E80] shadow-sm' : 'text-[#66748C]'}`}
+                      className={`btn-press py-2 rounded-lg text-xs font-bold ${form.sekolah === v ? 'bg-white text-[#1B4E80] shadow-[0_2px_6px_rgba(27,78,128,0.08)]' : 'text-[#66748C] hover:text-[#1B4E80]'}`}
                     >
                       {label as string}
                     </button>

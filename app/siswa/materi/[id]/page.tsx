@@ -21,8 +21,8 @@ interface PageProps {
 }
 
 const tombolNonaktif = 'inline-flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2.5 rounded-xl bg-[#F1F5F9] text-[#94A3B8] cursor-not-allowed border border-[#E2E8F0]';
-const tombolSekunder = 'btn-press inline-flex items-center gap-1.5 text-[13px] font-semibold px-4 py-2.5 rounded-xl bg-white border border-[#DCEAF7] text-[#4B5A70] hover:text-[#2E7BC4] hover:border-[#BFDBFE] shadow-sm';
-const tombolUtama = 'btn-press group text-[13px] font-bold px-4 py-2.5 rounded-xl bg-[#2E7BC4] text-white hover:bg-[#1B4E80] shadow-[0_6px_16px_rgba(46,123,196,0.28)] inline-flex items-center gap-1.5';
+const tombolSekunder = 'btn-secondary inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2.5 rounded-xl';
+const tombolUtama = 'btn-primary group text-[13px] font-bold px-4 py-2.5 rounded-xl inline-flex items-center gap-1.5';
 
 const adaIsi = (html: string) => !!html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim() || html.includes('<img');
 
@@ -114,16 +114,16 @@ export default async function MateriPage({ params, searchParams }: PageProps) {
 
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto">
         <div className="mb-5">
-          <Link href="/siswa/materi" className="btn-press inline-flex items-center gap-1.5 text-xs font-semibold px-3.5 py-2 rounded-xl bg-white/80 border border-[#DCEAF7] text-[#66748C] hover:text-[#2E7BC4] hover:bg-white shadow-sm">
+          <Link href="/siswa/materi" className="btn-secondary inline-flex items-center gap-1.5 text-xs font-bold px-3.5 py-2 rounded-xl">
             <ArrowLeft className="w-3.5 h-3.5" /> Kembali ke Daftar Modul
           </Link>
         </div>
 
-        <div className="glass-card p-6 md:p-8 mb-5 relative overflow-hidden anim-rise">
-          <span className="absolute right-4 -top-6 text-[120px] font-extrabold text-[#2E7BC4]/[0.05] select-none leading-none tabular" aria-hidden="true">{materi.chapter_number}</span>
-          <span className="relative inline-block text-[11px] font-bold px-3 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] mb-3">Materi Belajar Mandiri #{materi.chapter_number}</span>
-          <h1 className="relative text-2xl md:text-[28px] font-extrabold text-[#1B4E80] mb-1.5 leading-tight">{materi.title}</h1>
-          <p className="relative text-[13px] text-[#66748C] mb-6">Mata Pelajaran: <strong className="text-[#1F2A37]">Matematika</strong> · {total} subbab</p>
+        <div className="hero-card p-6 md:p-8 mb-5 relative overflow-hidden anim-rise">
+          <span className="absolute right-4 -top-6 text-[120px] font-extrabold text-[#2E7BC4]/[0.06] select-none leading-none tabular" aria-hidden="true">{materi.chapter_number}</span>
+          <span className="relative inline-block text-xs font-extrabold px-3 py-1 rounded-full bg-gradient-to-r from-[#194B7C] to-[#0E2A48] text-white shadow-sm mb-3">Materi Belajar Mandiri #{materi.chapter_number}</span>
+          <h1 className="relative text-2xl md:text-[28px] font-extrabold tracking-[-0.02em] text-[#113355] mb-1.5 leading-tight">{materi.title}</h1>
+          <p className="relative text-[13px] text-[#5B6B82] mb-6">Mata Pelajaran: <strong className="text-[#113355]">Matematika</strong> · <span className="tabular font-semibold">{total}</span> subbab</p>
           <div className="relative pt-5 border-t border-[#DCEAF7]"><ProgressSteps langkah={langkah} /></div>
         </div>
 
@@ -138,8 +138,8 @@ export default async function MateriPage({ params, searchParams }: PageProps) {
 
         <div className="grid grid-cols-1 lg:grid-cols-[240px,1fr] gap-5 items-start">
           {/* Daftar subbab */}
-          <nav aria-label="Daftar subbab" className="glass-card p-4 lg:sticky lg:top-[132px] anim-rise">
-            <div className="text-[13px] font-bold text-[#1B4E80] mb-2.5 flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-[#2E7BC4]" /> Cakupan Topik</div>
+          <nav aria-label="Daftar subbab" className="glass-card p-4 lg:sticky lg:top-[140px] anim-rise">
+            <div className="text-[13px] font-extrabold text-[#113355] mb-2.5 pb-2 border-b border-[#E3EFFC] flex items-center gap-1.5"><BookOpen className="w-4 h-4 text-[#2E7BC4]" /> Cakupan Topik</div>
             <ol className="flex lg:flex-col gap-1.5 overflow-x-auto [scrollbar-width:none] -mx-1 px-1 pb-1 lg:pb-0">
               {bagian.map((b, i) => {
                 const ini = i + 1 === n;
@@ -148,9 +148,9 @@ export default async function MateriPage({ params, searchParams }: PageProps) {
                     <Link
                       href={href(i + 1)}
                       aria-current={ini ? 'step' : undefined}
-                      className={`flex items-start gap-2 p-2 rounded-xl text-[13px] transition-colors whitespace-nowrap lg:whitespace-normal ${ini ? 'bg-[#2E7BC4] text-white font-bold shadow-sm' : 'text-[#1F2A37] hover:bg-[#F4F9FF]'}`}
+                      className={`flex items-start gap-2 p-2.5 rounded-xl text-[13px] transition-colors whitespace-nowrap lg:whitespace-normal ${ini ? 'bg-gradient-to-r from-[#2E7ECF] to-[#174A7E] text-white font-bold shadow-[0_6px_14px_-3px_rgba(23,74,126,0.35)]' : 'text-[#1F2A37] hover:bg-[#F0F7FF]'}`}
                     >
-                      <span className={`w-5 h-5 rounded-md text-[10px] font-extrabold flex items-center justify-center shrink-0 mt-px tabular ${ini ? 'bg-white text-[#2E7BC4]' : i + 1 < n ? 'bg-[#E4F8EE] text-[#15885A]' : 'bg-[#EAF6FF] text-[#2E7BC4]'}`}>{i + 1}</span>
+                      <span className={`w-5 h-5 rounded-md text-[11px] font-extrabold flex items-center justify-center shrink-0 mt-px tabular ${ini ? 'bg-white text-[#174A7E]' : i + 1 < n ? 'bg-[#E4F8EE] text-[#15885A] border border-[#B5EBD0]' : 'bg-[#EAF6FF] text-[#2E7BC4]'}`}>{i + 1}</span>
                       {b.judul || `Subbab ${i + 1}`}
                     </Link>
                   </li>
@@ -158,13 +158,13 @@ export default async function MateriPage({ params, searchParams }: PageProps) {
               })}
             </ol>
             <div className="mt-3 hidden lg:block">
-              <div className="text-[11px] font-semibold text-[#66748C] mb-1">Bagian {n} dari {total}</div>
-              <div className="h-1.5 rounded-full bg-[#E6EEF7] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-[#5FA8E8] to-[#2E7BC4]" style={{ width: `${(n / total) * 100}%` }} /></div>
+              <div className="text-xs font-semibold text-[#5B6B82] mb-1 tabular">Bagian {n} dari {total}</div>
+              <div className="h-1.5 rounded-full bg-[#E6EEF7] overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-[#5FA8E8] to-[#1D5A96] transition-[width] duration-300 ease-[var(--ease-out)]" style={{ width: `${(n / total) * 100}%` }} /></div>
             </div>
           </nav>
 
           <article className="glass-card p-6 md:p-8 anim-rise" style={{ ['--i' as string]: 1 }}>
-            <div className="text-[11px] font-bold text-[#2E7BC4] uppercase tracking-wider mb-1">Subbab {n} dari {total}</div>
+            <div className="text-xs font-bold text-[#2E7BC4] uppercase tracking-wider mb-1">Subbab {n} dari {total}</div>
             <h2 className="text-xl md:text-2xl font-extrabold text-[#1B4E80] mb-5 leading-tight">{aktif?.judul || materi.title}</h2>
             {n === 1 && <MediaMateri url={materi.youtube_url} judul={materi.title} />}
             {kontenHtml ? (

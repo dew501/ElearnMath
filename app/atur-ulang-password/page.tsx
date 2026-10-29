@@ -120,13 +120,13 @@ export default function AturUlangPasswordPage() {
                 autoComplete={f.auto}
                 value={f.value}
                 onChange={(e) => f.set(e.target.value)}
-                className="w-full pl-10 pr-11 py-3 rounded-xl border border-[#DCEAF7] bg-[#F8FAFC] text-sm focus:bg-white focus:outline-none focus:border-[#2E7BC4] focus:ring-4 focus:ring-[#2E7BC4]/10 transition-all"
+                className="input-field w-full pl-10 pr-11 py-3 rounded-xl bg-[#F8FBFF] text-sm focus:bg-white"
               />
               {f.id === 'pw' && (
                 <button
                   type="button"
                   onClick={() => setLihat((v) => !v)}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#2E7BC4] hover:bg-[#EAF6FF]"
+                  className="btn-press absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center rounded-lg text-[#94A3B8] hover:text-[#2E7BC4] hover:bg-[#EAF6FF]"
                   aria-label={lihat ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
                 >
                   {lihat ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -137,16 +137,16 @@ export default function AturUlangPasswordPage() {
         ))}
         <div className="flex items-center gap-2" aria-hidden={kuat === 0}>
           {[1, 2, 3].map((n) => (
-            <span key={n} className={`h-1.5 flex-1 rounded-full transition-colors duration-300 ${kuat >= n ? (kuat === 1 ? 'bg-[#E3543F]' : kuat === 2 ? 'bg-[#F0932B]' : 'bg-[#22B573]') : 'bg-[#E6EEF7]'}`} />
+            <span key={n} className={`h-1.5 flex-1 rounded-full transition-colors duration-200 ease-[var(--ease-out)] ${kuat >= n ? (kuat === 1 ? 'bg-[#E3543F]' : kuat === 2 ? 'bg-[#F0932B]' : 'bg-[#22B573]') : 'bg-[#E6EEF7]'}`} />
           ))}
-          <span className="text-[11px] font-semibold text-[#66748C] w-16 text-right">
+          <span className="text-xs font-semibold text-[#66748C] w-16 text-right">
             {['', 'Lemah', 'Cukup', 'Kuat'][kuat]}
           </span>
         </div>
         <button
           type="submit"
           disabled={loading}
-          className="btn-press w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2468A9] hover:from-[#1B4E80] hover:to-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 disabled:opacity-70"
+          className="btn-press w-full py-3 px-4 rounded-xl bg-gradient-to-r from-[#2E7BC4] to-[#2263A3] hover:from-[#2468A9] hover:to-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_1px_0_rgba(255,255,255,0.22)_inset,0_10px_22px_-4px_rgba(46,123,196,0.38)] disabled:opacity-70"
         >
           {loading ? <Spinner /> : <ShieldCheck className="w-4 h-4" />}
           {loading ? 'Menyimpan...' : 'Simpan Kata Sandi Baru'}

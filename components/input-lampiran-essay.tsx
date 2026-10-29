@@ -519,7 +519,7 @@ export function InputLampiranEssay({
           <span className="text-[#66748C]"> &bull; Format diterima: </span>
           <strong className="text-[#2E7BC4]">{labelFormatFile(formatFile)}</strong>
         </div>
-        <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#DCEAF7] text-[#4B5A70] tabular">
+        <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-white border border-[#DCEAF7] text-[#4B5A70] tabular">
           {lampiran.length}/{MAKS_BERKAS_PER_SOAL} berkas
         </span>
       </div>
@@ -639,7 +639,7 @@ export function InputLampiranEssay({
                       {a.gantiPathLama ? 'Mengganti berkas: ' : ''}
                       {a.namaAsli}
                     </div>
-                    <div className="text-[11px] text-[#66748C] mt-0.5 flex items-center gap-1.5 flex-wrap tabular">
+                    <div className="text-xs text-[#66748C] mt-0.5 flex items-center gap-1.5 flex-wrap tabular">
                       <span>Ukuran awal: {formatUkuranByte(a.ukuranAsli)}</span>
                       {komp && (
                         <>
@@ -659,7 +659,7 @@ export function InputLampiranEssay({
                   <button
                     type="button"
                     onClick={() => batalkanAntrean(a)}
-                    className="btn-press px-2.5 py-1 rounded-lg text-[11px] font-bold text-[#C2412E] hover:bg-[#FDEAE7] shrink-0"
+                    className="btn-press px-2.5 py-1 rounded-lg text-xs font-bold text-[#C2412E] hover:bg-[#FDEAE7] shrink-0"
                   >
                     Batalkan
                   </button>
@@ -667,7 +667,7 @@ export function InputLampiranEssay({
 
                 {/* Bar Progres Kompresi */}
                 <div>
-                  <div className="flex justify-between text-[11px] font-bold mb-1">
+                  <div className="flex justify-between text-xs font-bold mb-1">
                     <span className="text-[#1B4E80] flex items-center gap-1">
                       <Sparkles className="w-3 h-3 text-[#2E7BC4]" />
                       {a.tahap === 'kompresi' ? a.infoTahapKompresi : 'Auto-kompresi selesai'}
@@ -684,7 +684,7 @@ export function InputLampiranEssay({
 
                 {/* Indikator kualitas setelah kompresi selesai */}
                 {komp && infoKualitas && (
-                  <div className="flex items-center gap-1.5 flex-wrap text-[11px]">
+                  <div className="flex items-center gap-1.5 flex-wrap text-xs">
                     <span
                       className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full border font-bold ${infoKualitas.kelas}`}
                     >
@@ -697,7 +697,7 @@ export function InputLampiranEssay({
                 {/* Bar Progres Unggah ke Supabase */}
                 {(a.tahap === 'unggah' || a.persenUnggah > 0) && (
                   <div>
-                    <div className="flex justify-between text-[11px] font-bold mb-1">
+                    <div className="flex justify-between text-xs font-bold mb-1">
                       <span className="text-[#15885A]">Mengunggah ke penyimpanan...</span>
                       <span className="text-[#15885A] tabular">{a.persenUnggah}%</span>
                     </div>
@@ -712,7 +712,7 @@ export function InputLampiranEssay({
 
                 {a.tahap === 'gagal' && (
                   <div className="p-2.5 rounded-lg bg-[#FDEAE7] border border-[#FECACA] flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-[11px] font-semibold text-[#991B1B]">
+                    <span className="text-xs font-semibold text-[#991B1B]">
                       {a.pesanGalat || 'Gagal memproses berkas.'}
                     </span>
                     {a.hasilKompresi && (
@@ -730,7 +730,7 @@ export function InputLampiranEssay({
                             a.gantiPathLama
                           )
                         }
-                        className="btn-press px-3 py-1 rounded-lg bg-[#2E7BC4] text-white text-[11px] font-bold inline-flex items-center gap-1"
+                        className="btn-press px-3 py-1 rounded-lg bg-[#2E7BC4] text-white text-xs font-bold inline-flex items-center gap-1"
                       >
                         <RefreshCw className="w-3 h-3" /> Coba Unggah Lagi
                       </button>
@@ -782,13 +782,13 @@ export function InputLampiranEssay({
                       <span className="text-xs font-extrabold text-[#1F2A37] truncate max-w-[240px] sm:max-w-[320px]">
                         {item.original_name || item.name}
                       </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]">
+                      <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]">
                         Terunggah 100%
                       </span>
                     </div>
 
                     {/* Info Before vs After Ukuran Kompresi */}
-                    <div className="text-[11px] text-[#4B5A70] flex items-center gap-1.5 flex-wrap tabular">
+                    <div className="text-xs text-[#4B5A70] flex items-center gap-1.5 flex-wrap tabular">
                       <span>Sebelum: <strong>{formatUkuranByte(item.original_size)}</strong></span>
                       <ArrowRight className="w-3 h-3 text-[#2E7BC4]" />
                       <span>Sesudah: <strong className="text-[#1B4E80]">{formatUkuranByte(item.compressed_size)}</strong></span>
@@ -806,11 +806,11 @@ export function InputLampiranEssay({
                     {/* Status kualitas hasil kompresi (apakah masih bagus atau blur) */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span
-                        className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full border ${infoKualitas.kelas}`}
+                        className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border ${infoKualitas.kelas}`}
                       >
                         <infoKualitas.ikon className="w-3 h-3" /> {infoKualitas.label}
                       </span>
-                      <span className="text-[11px] text-[#66748C]">{item.quality_note}</span>
+                      <span className="text-xs text-[#66748C]">{item.quality_note}</span>
                     </div>
                   </div>
                 </div>

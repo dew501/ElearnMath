@@ -34,50 +34,51 @@ export default async function DaftarNilaiPage() {
     <div className="min-h-screen flex flex-col">
       <Navbar title="Daftar Nilai" userRole="siswa" userName={d.nama} />
       <SiswaNav />
-      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[960px] w-full mx-auto">
-        <section className="glass-card p-6 md:p-7 mb-6 flex flex-col sm:flex-row sm:items-center gap-5 anim-rise">
-          <span className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFB454] to-[#F0932B] text-white flex items-center justify-center shrink-0 shadow-md"><Trophy className="w-7 h-7" /></span>
-          <div className="flex-1">
-            <h1 className="text-2xl font-extrabold text-[#1B4E80]">Daftar Nilai</h1>
-            <p className="text-sm text-[#66748C] mt-1">Nilai akhir dari guru untuk setiap tugas. Tugas yang belum dinilai ditandai &ldquo;menunggu&rdquo;.</p>
+      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1000px] w-full mx-auto">
+        <section className="hero-navy p-6 md:p-7 mb-6 flex flex-col sm:flex-row sm:items-center gap-5 anim-rise">
+          <span className="relative z-10 w-14 h-14 rounded-2xl bg-gradient-to-br from-[#FFBE66] to-[#E58113] text-[#0D2744] flex items-center justify-center shrink-0 shadow-[0_8px_18px_-4px_rgba(229,129,19,0.5)] ring-2 ring-white/25"><Trophy className="w-7 h-7" /></span>
+          <div className="relative z-10 flex-1">
+            <h1 className="text-2xl sm:text-[26px] font-extrabold tracking-[-0.02em] text-white">Transkrip &amp; Daftar Nilai</h1>
+            <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1">Nilai akhir dari guru untuk setiap tugas. Tugas yang belum dinilai ditandai &ldquo;menunggu&rdquo;.</p>
           </div>
-          <div className="text-center shrink-0">
+          <div className="relative z-10 px-5 py-3 rounded-2xl bg-white/95 border border-white text-center shrink-0 shadow-[0_12px_28px_-8px_rgba(6,19,36,0.4)]">
             <div className={`text-4xl font-extrabold tabular leading-none ${rata !== null ? warna(rata) : 'text-[#94A3B8]'}`}>{rata ?? '–'}</div>
-            <div className="text-[11px] font-semibold text-[#66748C] mt-1">rata-rata nilai</div>
+            <div className="text-xs font-bold text-[#5A6B82] mt-1">rata-rata nilai</div>
           </div>
         </section>
 
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {JENIS_URUT.map((j) => {
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mb-6">
+          {JENIS_URUT.map((j, idx) => {
             const r = rataJenis(j);
+            const barColor = idx === 0 ? 'bg-[#EA881A]' : idx === 1 ? 'bg-[#256DB3]' : 'bg-[#15945C]';
             return (
-              <div key={j} className="glass-card p-4">
-                <div className="text-[11px] font-bold text-[#66748C] uppercase tracking-wider">{JENIS[j].singkat}</div>
-                <div className="text-2xl font-extrabold text-[#1B4E80] tabular mt-1">{r ?? '–'}</div>
-                <div className="h-1.5 rounded-full bg-[#E6EEF7] mt-2 overflow-hidden"><div className="h-full rounded-full bg-gradient-to-r from-[#5FA8E8] to-[#2E7BC4]" style={{ width: `${r ?? 0}%` }} /></div>
+              <div key={j} className="bento-stat p-4 sm:p-5 anim-rise" style={{ ['--i' as string]: idx }}>
+                <div className="text-xs font-extrabold text-[#5A6B82]">{JENIS[j].judul}</div>
+                <div className="text-2xl font-extrabold text-[#0E2A48] tabular mt-1">{r ?? '–'}</div>
+                <div className="h-2 rounded-full bg-[#DCEAF7] mt-2.5 overflow-hidden"><div className={`h-full rounded-full ${barColor}`} style={{ width: `${r ?? 0}%` }} /></div>
               </div>
             );
           })}
         </div>
 
         {d.materi.length === 0 ? (
-          <div className="glass-card p-8 text-center"><p className="text-sm text-[#66748C]">Belum ada nilai.</p></div>
+          <div className="glass-card p-8 text-center"><p className="text-sm text-[#5A6B82]">Belum ada nilai.</p></div>
         ) : (
           <div className="glass-card overflow-hidden anim-rise">
             <div className="overflow-x-auto">
               <table className="w-full text-sm min-w-[520px]">
-                <thead className="bg-[#F4F9FF] text-[#1B4E80] text-xs">
+                <thead className="bg-[#F5F9FD] text-[#5A6B82] text-xs border-b border-[#E1EAF4]">
                   <tr>
-                    <th className="text-left px-4 py-3">Bab</th>
-                    {JENIS_URUT.map((j) => <th key={j} className="px-3 py-3">{JENIS[j].singkat}</th>)}
+                    <th className="text-left px-4 py-3.5 font-bold">Bab</th>
+                    {JENIS_URUT.map((j) => <th key={j} className="px-3 py-3.5 font-bold">{JENIS[j].singkat}</th>)}
                   </tr>
                 </thead>
                 <tbody>
                   {d.materi.map((m) => (
-                    <tr key={m.id} className="border-t border-[#F1F5F9]">
+                    <tr key={m.id} className="border-t border-[#F1F5F9] hover:bg-[#F8FBFF]/80 transition-colors duration-150">
                       <td className="px-4 py-3">
                         <Link href={`/siswa/materi/${m.id}`} className="font-bold text-[#1B4E80] hover:underline">Bab {m.chapter_number}</Link>
-                        <span className="block text-[11px] text-[#66748C] line-clamp-1">{m.title}</span>
+                        <span className="block text-xs text-[#66748C] line-clamp-1">{m.title}</span>
                       </td>
                       {JENIS_URUT.map((j) => {
                         const k = ambil(m.id, j);
@@ -89,7 +90,7 @@ export default async function DaftarNilaiPage() {
                               ) : k.final ? (
                                 <span className={`text-lg font-extrabold tabular ${warna(Number(k.score))}`}>{k.score}</span>
                               ) : (
-                                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">{k.ulang ? 'boleh ulang' : 'menunggu'}</span>
+                                <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">{k.ulang ? 'boleh ulang' : 'menunggu'}</span>
                               )}
                             </Link>
                           </td>

@@ -80,18 +80,23 @@ export default function KelolaMateriPage() {
       <Navbar title="Kelola Materi" userRole={profil?.role ?? null} userName={profil?.nama ?? '…'} />
       <StaffNav role={profil?.role ?? null} />
 
-      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[980px] w-full mx-auto">
-        <div className="flex items-end justify-between gap-4 flex-wrap mb-6 anim-rise">
-          <div>
-            <h1 className="text-2xl font-extrabold text-[#1B4E80]">Kelola Materi</h1>
-            <p className="text-xs text-[#66748C] mt-1">Tambah, ubah, atau hapus bab materi yang dipelajari siswa.</p>
+      <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1040px] w-full mx-auto">
+        <div className="hero-navy p-6 sm:p-7 mb-6 anim-rise">
+          <div className="relative z-10 flex items-start sm:items-end justify-between gap-4 flex-wrap">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+                Kurikulum Matematika · {memuat ? '…' : `${daftar.length} bab terdaftar`}
+              </div>
+              <h1 className="text-2xl sm:text-[26px] font-extrabold text-white tracking-[-0.02em]">Kelola Materi Pembelajaran</h1>
+              <p className="text-xs sm:text-[13px] text-[#C8E1FA] mt-1.5">Tambah, susun subbab, atur jadwal terbit, dan kelola media pembelajaran siswa.</p>
+            </div>
+            <Link
+              href="/guru/materi/baru"
+              className="btn-amber inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-extrabold"
+            >
+              <Plus className="w-4 h-4" /> Tambah Bab
+            </Link>
           </div>
-          <Link
-            href="/guru/materi/baru"
-            className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white text-sm font-bold shadow-[0_6px_16px_rgba(46,123,196,0.3)]"
-          >
-            <Plus className="w-4 h-4" /> Tambah Bab
-          </Link>
         </div>
 
         {galat && (
@@ -114,15 +119,15 @@ export default function KelolaMateriPage() {
           </div>
         ) : daftar.length === 0 ? (
           <div className="glass-card p-10 text-center anim-rise">
-            <Inbox className="w-12 h-12 text-[#BFDBFE] mx-auto mb-3" />
-            <p className="text-sm font-semibold text-[#1B4E80]">Belum ada materi.</p>
-            <p className="text-xs text-[#66748C] mt-1 mb-5">Mulai dengan menambahkan Bab 1.</p>
-            <Link href="/guru/materi/baru" className="btn-press inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] text-white text-sm font-bold">
+            <Inbox className="w-12 h-12 text-[#9CC5EC] mx-auto mb-3" />
+            <p className="text-sm font-bold text-[#0E2A48]">Belum ada materi.</p>
+            <p className="text-xs text-[#5A6B82] mt-1 mb-5">Mulai dengan menambahkan Bab 1.</p>
+            <Link href="/guru/materi/baru" className="btn-primary inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-bold">
               <Plus className="w-4 h-4" /> Tambah Bab
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-3.5">
             {daftar.map((m, i) => {
               const media = kenaliMedia(m.youtube_url);
               const subbab = Array.isArray(m.subbab_json) ? m.subbab_json.length : 0;
@@ -130,37 +135,37 @@ export default function KelolaMateriPage() {
               return (
                 <article key={m.id} className="glass-card card-hover p-5 flex flex-col sm:flex-row sm:items-center gap-4 anim-rise" style={{ ['--i' as string]: i }}>
                   <div className="flex items-start gap-4 flex-1 min-w-0">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#D3ECFF] to-[#EAF6FF] border border-white text-[#1B4E80] flex flex-col items-center justify-center shrink-0 shadow-sm">
-                      <span className="text-[9px] font-bold uppercase tracking-wider text-[#2E7BC4]">Bab</span>
-                      <span className="text-xl font-extrabold leading-none tabular">{m.chapter_number ?? '?'}</span>
+                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#194B7E] to-[#0D2847] border border-[#2C68A6]/60 text-white flex flex-col items-center justify-center shrink-0 shadow-[0_8px_16px_-4px_rgba(13,40,71,0.38)]">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-[#FFCA80]">Bab</span>
+                      <span className="text-xl font-extrabold leading-none tabular mt-0.5">{m.chapter_number ?? '?'}</span>
                     </div>
                     <div className="min-w-0">
-                      <Link href={`/guru/materi/${m.id}`} className="font-extrabold text-[#1B4E80] hover:text-[#2E7BC4] line-clamp-2">
+                      <Link href={`/guru/materi/${m.id}`} className="text-base font-extrabold text-[#0E2A48] hover:text-[#256DB3] line-clamp-2">
                         {m.title || 'Tanpa judul'}
                       </Link>
-                      <div className="flex flex-wrap items-center gap-1.5 mt-2 text-[11px] font-semibold text-[#66748C]">
+                      <div className="flex flex-wrap items-center gap-1.5 mt-2 text-xs font-semibold text-[#5A6B82]">
                         {m.terbit === false ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]"><EyeOff className="w-3 h-3" /> Draf</span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#F1F5F9] border border-[#DCE5F0] text-[#4B5A70]"><EyeOff className="w-3 h-3" /> Draf</span>
                         ) : m.tanggal_buka && new Date(m.tanggal_buka) > new Date() ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]"><CalendarClock className="w-3 h-3" /> Dibuka {new Date(m.tanggal_buka).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF1DD] border border-[#F6D29B] text-[#B45309]"><CalendarClock className="w-3 h-3" /> Dibuka {new Date(m.tanggal_buka).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}</span>
                         ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]"><Eye className="w-3 h-3" /> Terbit</span>
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E3F7EE] border border-[#B4E7CE] text-[#127A4D]"><Eye className="w-3 h-3" /> Terbit</span>
                         )}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#F4F9FF] text-[#1B4E80]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#EDF5FD] border border-[#CDE1F6] text-[#133B63]">
                           <School className="w-3 h-3" /> {m.kelas_ids?.length ? m.kelas_ids.map((id) => namaKelas[id] ?? '?').join(', ') : 'Semua kelas'}
                         </span>
-                        <span>{subbab} subbab</span>
+                        <span className="tabular font-bold text-[#133B63]">{subbab} subbab</span>
                         {media?.jenis === 'youtube' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FEE2E2] text-[#DC2626]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FEE2E2] border border-[#FECACA] text-[#DC2626]">
                             <PlayCircle className="w-3 h-3" /> Video
                           </span>
                         )}
                         {media?.jenis === 'pdf' && (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#FFF1DD] border border-[#F6D29B] text-[#B45309]">
                             <FileText className="w-3 h-3" /> PDF
                           </span>
                         )}
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#1B4E80]">
+                        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#E8F3FF] border border-[#C6DFF9] text-[#133B63] tabular">
                           <Users className="w-3 h-3" /> {lkpd} LKPD terkumpul
                         </span>
                       </div>
@@ -169,20 +174,20 @@ export default function KelolaMateriPage() {
                   <div className="flex gap-2 shrink-0">
                     <Link
                       href={`/guru/lkpd/${m.id}`}
-                      className="btn-press inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-[#B45309] hover:bg-[#FFF1DD]"
+                      className="btn-press inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-[#FFF6E9] border border-[#F5D39E] text-xs font-bold text-[#A54F05] hover:bg-[#FFEAD0]"
                     >
                       <ClipboardList className="w-3.5 h-3.5" /> LKPD
                     </Link>
                     <Link
                       href={`/guru/materi/${m.id}`}
-                      className="btn-press inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-[#DCEAF7] text-xs font-bold text-[#1B4E80] hover:border-[#2E7BC4]"
+                      className="btn-secondary inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
                     >
                       <PencilLine className="w-3.5 h-3.5" /> Ubah
                     </Link>
                     <button
                       type="button"
                       onClick={() => setHapus(m)}
-                      className="btn-press inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold text-[#C2412E] hover:bg-[#FDEAE7]"
+                      className="btn-press inline-flex items-center gap-1.5 px-3 py-2 rounded-xl border border-[#F4C7C1] bg-[#FFF7F6] text-xs font-bold text-[#C2412E] hover:bg-[#FDEAE7]"
                       aria-label={`Hapus Bab ${m.chapter_number}`}
                     >
                       <Trash2 className="w-3.5 h-3.5" /> Hapus

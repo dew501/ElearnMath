@@ -58,58 +58,64 @@ export default async function BerandaSiswaPage() {
       <SiswaNav />
 
       <div className="flex-1 p-5 sm:p-6 md:p-8 max-w-[1100px] w-full mx-auto">
-        <section className="glass-card p-6 md:p-7 mb-6 flex flex-col sm:flex-row sm:items-center gap-6 overflow-hidden relative anim-rise">
-          <span className="absolute -right-4 -top-10 text-[150px] font-extrabold text-[#2E7BC4]/[0.05] select-none leading-none" aria-hidden="true">∫</span>
-          <div className="flex-1 relative">
-            <div className="text-xs font-bold text-[#F0932B] uppercase tracking-wider flex items-center gap-1.5 mb-1.5"><Sparkles className="w-3.5 h-3.5" /> {sapaan()}</div>
-            <h1 className="text-2xl md:text-[28px] font-extrabold text-[#1B4E80] leading-tight">Halo, {d.nama}!</h1>
-            <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
+        <section className="hero-navy p-6 md:p-8 mb-6 flex flex-col sm:flex-row sm:items-center gap-6 relative anim-rise">
+          <span className="font-mono absolute right-4 -bottom-8 text-[160px] font-extrabold text-white/[0.06] select-none leading-none pointer-events-none" aria-hidden="true">∫</span>
+          <div className="flex-1 relative z-10">
+            <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/12 border border-white/20 text-xs font-bold text-[#FFCA80] mb-3">
+              <Sparkles className="w-3.5 h-3.5" /> {sapaan()}
+            </div>
+            <h1 className="text-2xl md:text-[30px] font-extrabold tracking-[-0.02em] text-white leading-tight">Halo, {d.nama}!</h1>
+            <div className="mt-3 flex flex-wrap items-center gap-2.5 text-xs">
               {d.kelas ? (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#D3ECFF] text-[#1B4E80] font-bold"><School className="w-3.5 h-3.5" /> Kelas {d.kelas.nama}</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/14 border border-white/25 text-white font-bold backdrop-blur-sm"><School className="w-3.5 h-3.5 text-[#FFCA80]" /> Kelas {d.kelas.nama}</span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#FFF1DD] text-[#B45309] font-bold"><AlertTriangle className="w-3.5 h-3.5" /> Belum masuk kelas — hubungi admin</span>
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFF1DD] border border-[#FBD38D] text-[#9A4E04] font-bold"><AlertTriangle className="w-3.5 h-3.5" /> Belum masuk kelas — hubungi admin</span>
               )}
-              {d.guru.length > 0 && <span className="text-[#66748C]">Guru: <strong className="text-[#1B4E80]">{d.guru.join(', ')}</strong></span>}
+              {d.guru.length > 0 && <span className="text-[#C8E1FA]">Guru pengampu: <strong className="text-white">{d.guru.join(', ')}</strong></span>}
             </div>
           </div>
           {d.materi.length > 0 && (
-            <div className="relative self-center">
-              <ScoreRing value={babSelesai} max={d.materi.length} size={104} caption="Bab tuntas" tone="green" />
+            <div className="relative z-10 self-center bg-white/95 backdrop-blur-md rounded-2xl px-4 py-3 border border-white shadow-[0_14px_30px_-8px_rgba(6,19,36,0.42)]">
+              <ScoreRing value={babSelesai} max={d.materi.length} size={98} caption="Bab tuntas" tone="green" />
             </div>
           )}
         </section>
 
         {lanjut && (
-          <Link href={lanjut.l.href} className="group glass-card card-hover p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4 border-2 border-[#BFDBFE] anim-rise" style={{ ['--i' as string]: 1 }}>
-            <span className="flex items-center gap-4 flex-1 min-w-0">
-              <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2E7BC4] to-[#1B4E80] text-white flex items-center justify-center shrink-0 shadow-md"><Rocket className="w-6 h-6" /></span>
+          <Link href={lanjut.l.href} className="group relative overflow-hidden glass-card card-hover p-5 mb-6 flex flex-col sm:flex-row sm:items-center gap-4 border-[#9AC5EE] bg-gradient-to-r from-white via-[#F7FBFF] to-[#EBF5FF] anim-rise" style={{ ['--i' as string]: 1 }}>
+            <span className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-[#FFB454] via-[#256DB3] to-[#0E2A48]" aria-hidden="true" />
+            <span className="flex items-center gap-4 flex-1 min-w-0 pl-1">
+              <span className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#2E7ECF] to-[#0E2A48] text-white flex items-center justify-center shrink-0 shadow-[0_1px_0_rgba(255,255,255,0.28)_inset,0_10px_20px_-4px_rgba(14,42,72,0.4)]"><Rocket className="w-6 h-6 text-[#FFCA80]" /></span>
               <span className="flex-1 min-w-0">
-                <span className="block text-[11px] font-bold text-[#2E7BC4] uppercase tracking-wider">Lanjutkan belajar</span>
-                <span className="block text-base font-extrabold text-[#1B4E80] line-clamp-2 sm:truncate">Bab {lanjut.m.chapter_number}: {lanjut.m.title}</span>
+                <span className="block text-xs font-extrabold text-[#256DB3]">Lanjutkan belajar</span>
+                <span className="block text-base sm:text-lg font-extrabold text-[#0E2A48] line-clamp-2 sm:truncate">Bab {lanjut.m.chapter_number}: {lanjut.m.title}</span>
               </span>
             </span>
-            <span className="btn-press shrink-0 inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#2E7BC4] text-white text-[13px] font-bold">
-              {lanjut.l.teks} <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5" />
+            <span className="btn-primary shrink-0 inline-flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl text-[13px] font-bold">
+              {lanjut.l.teks} <ArrowRight className="w-4 h-4 transition-transform duration-150 ease-[var(--ease-out)] sm:group-hover:translate-x-0.5" />
             </span>
           </Link>
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <section className="glass-card p-5 anim-rise" style={{ ['--i' as string]: 2 }}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-extrabold text-[#1B4E80] flex items-center gap-2"><CalendarDays className="w-4 h-4" /> Jadwal Hari Ini · {HARI[hariIni()]}</h2>
-              <Link href="/siswa/jadwal" className="text-xs font-bold text-[#2E7BC4] hover:underline">Jadwal lengkap</Link>
+          <section className="glass-card p-5 sm:p-6 anim-rise" style={{ ['--i' as string]: 2 }}>
+            <div className="flex items-center justify-between mb-3.5 pb-3 border-b border-[#E3EEF9]">
+              <h2 className="text-sm font-extrabold text-[#0E2A48] flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-[#E8F3FF] text-[#1D60A4] flex items-center justify-center"><CalendarDays className="w-4 h-4" /></span>
+                Jadwal Hari Ini · {HARI[hariIni()]}
+              </h2>
+              <Link href="/siswa/jadwal" className="text-xs font-bold text-[#256DB3] hover:text-[#0E2A48] hover:underline">Jadwal lengkap</Link>
             </div>
             {jadwalHariIni.length === 0 ? (
-              <p className="text-sm text-[#66748C] py-4 text-center">{d.kelas ? 'Tidak ada pelajaran matematika hari ini.' : 'Jadwal tampil setelah kamu masuk kelas.'}</p>
+              <p className="text-sm text-[#5A6B82] py-5 text-center">{d.kelas ? 'Tidak ada pelajaran matematika hari ini.' : 'Jadwal tampil setelah kamu masuk kelas.'}</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {jadwalHariIni.map((j) => (
-                  <li key={j.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/80 border border-[#E6EEF7]">
-                    <span className="text-xs font-extrabold text-[#2E7BC4] tabular flex items-center gap-1 shrink-0"><Clock className="w-3.5 h-3.5" /> {jamPendek(j.jam_mulai)}–{jamPendek(j.jam_selesai)}</span>
+                  <li key={j.id} className="flex items-center gap-3 p-3 rounded-xl bg-[#F5FAFF] border border-[#CFE3F7] border-l-4 border-l-[#256DB3]">
+                    <span className="text-xs font-extrabold text-[#133B63] bg-white px-2.5 py-1 rounded-lg border border-[#CFE3F7] tabular flex items-center gap-1 shrink-0 shadow-sm"><Clock className="w-3.5 h-3.5 text-[#256DB3]" /> {jamPendek(j.jam_mulai)}–{jamPendek(j.jam_selesai)}</span>
                     <span className="min-w-0">
-                      <span className="block text-sm font-bold text-[#1F2A37]">{j.mapel}</span>
-                      <span className="block text-[11px] text-[#66748C] truncate">{j.guru?.full_name ?? ''}{j.ruang ? ` · ${j.ruang}` : ''}</span>
+                      <span className="block text-sm font-bold text-[#0E2A48]">{j.mapel}</span>
+                      <span className="block text-xs font-medium text-[#5A6B82] truncate">{j.guru?.full_name ?? ''}{j.ruang ? ` · ${j.ruang}` : ''}</span>
                     </span>
                   </li>
                 ))}
@@ -117,7 +123,7 @@ export default async function BerandaSiswaPage() {
             )}
             {agenda.length > 0 && (
               <>
-                <h3 className="text-xs font-extrabold text-[#1B4E80] mt-4 mb-2">Agenda & tenggat terdekat</h3>
+                <h3 className="text-xs font-extrabold text-[#0E2A48] mt-4 mb-2">Agenda &amp; tenggat terdekat</h3>
                 <ul className="space-y-1.5">
                   {agenda.map((a) => {
                     const j = JENIS_AGENDA[a.jenis] ?? JENIS_AGENDA.lainnya;
@@ -125,7 +131,7 @@ export default async function BerandaSiswaPage() {
                     return (
                       <li key={a.id} className="flex items-center gap-2 text-xs">
                         <span className={`inline-flex items-center gap-1 font-bold px-2 py-0.5 rounded-full shrink-0 ${j.warna}`}><Ikon className="w-3 h-3" /> {labelHariRelatif(a.tanggal)}</span>
-                        <span className="font-semibold text-[#1F2A37] truncate">{a.judul}{a.jam_mulai ? ` · ${jamPendek(a.jam_mulai)}` : ''}</span>
+                        <span className="font-semibold text-[#162232] truncate">{a.judul}{a.jam_mulai ? ` · ${jamPendek(a.jam_mulai)}` : ''}</span>
                       </li>
                     );
                   })}
@@ -134,21 +140,24 @@ export default async function BerandaSiswaPage() {
             )}
           </section>
 
-          <section className="glass-card p-5 anim-rise" style={{ ['--i' as string]: 3 }}>
-            <div className="flex items-center justify-between mb-3">
-              <h2 className="text-sm font-extrabold text-[#1B4E80] flex items-center gap-2"><Megaphone className="w-4 h-4" /> Pengumuman</h2>
-              <Link href="/siswa/pengumuman" className="text-xs font-bold text-[#2E7BC4] hover:underline">Semua</Link>
+          <section className="glass-card p-5 sm:p-6 anim-rise" style={{ ['--i' as string]: 3 }}>
+            <div className="flex items-center justify-between mb-3.5 pb-3 border-b border-[#E3EEF9]">
+              <h2 className="text-sm font-extrabold text-[#0E2A48] flex items-center gap-2">
+                <span className="w-7 h-7 rounded-lg bg-[#FFF2E0] text-[#D97208] flex items-center justify-center"><Megaphone className="w-4 h-4" /></span>
+                Pengumuman Terbaru
+              </h2>
+              <Link href="/siswa/pengumuman" className="text-xs font-bold text-[#256DB3] hover:text-[#0E2A48] hover:underline">Semua</Link>
             </div>
             {pengumuman.length === 0 ? (
-              <p className="text-sm text-[#66748C] py-4 text-center">Belum ada pengumuman.</p>
+              <p className="text-sm text-[#5A6B82] py-5 text-center">Belum ada pengumuman.</p>
             ) : (
-              <ul className="space-y-2">
+              <ul className="space-y-2.5">
                 {pengumuman.map((p) => (
                   <li key={p.id}>
-                    <Link href="/siswa/pengumuman" className={`block p-3 rounded-xl bg-white/80 border hover:border-[#2E7BC4] transition-colors ${p.penting ? 'border-[#FECACA]' : 'border-[#E6EEF7]'}`}>
-                      <span className="flex items-center gap-1.5 text-sm font-bold text-[#1F2A37]">{p.penting && <Star className="w-3.5 h-3.5 text-[#C2412E] shrink-0" />}<span className="truncate">{p.judul}</span></span>
-                      <span className="block text-[11px] text-[#66748C] line-clamp-1 mt-0.5">{p.isi}</span>
-                      <span className="block text-[10px] text-[#94A3B8] mt-0.5">{p.nama_pembuat} · {waktuRelatif(p.created_at)}</span>
+                    <Link href="/siswa/pengumuman" className={`block p-3.5 rounded-xl bg-[#F8FBFF] border hover:border-[#5FA8E8] hover:bg-white transition-colors ${p.penting ? 'border-[#F5C2BA] border-l-4 border-l-[#E04B37]' : 'border-[#D5E6F7] border-l-4 border-l-[#256DB3]'}`}>
+                      <span className="flex items-center gap-1.5 text-sm font-bold text-[#0E2A48]">{p.penting && <Star className="w-3.5 h-3.5 text-[#C2412E] shrink-0" />}<span className="truncate">{p.judul}</span></span>
+                      <span className="block text-xs text-[#5A6B82] line-clamp-1 mt-0.5">{p.isi}</span>
+                      <span className="block text-[11px] font-medium text-[#8798AE] mt-1">{p.nama_pembuat} · {waktuRelatif(p.created_at)}</span>
                     </Link>
                   </li>
                 ))}

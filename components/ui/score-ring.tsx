@@ -52,13 +52,13 @@ export function ScoreRing({ value, max, size = 120, caption, tone = 'blue' }: Sc
             strokeDasharray={keliling}
             style={{
               strokeDashoffset: tampil ? keliling * (1 - persen) : keliling,
-              transition: 'stroke-dashoffset 1.1s cubic-bezier(0.22, 1, 0.36, 1)',
+              transition: 'stroke-dashoffset 850ms var(--ease-out)',
             }}
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
           <span className="text-[28px] leading-none font-extrabold text-[#1B4E80] tabular">{value ?? '–'}</span>
-          <span className="text-[11px] font-semibold text-[#66748C] mt-1 tabular">dari {max}</span>
+          <span className="text-xs font-semibold text-[#66748C] mt-1 tabular">dari {max}</span>
         </div>
       </div>
       {caption && <span className="text-xs font-semibold text-[#66748C] text-center">{caption}</span>}

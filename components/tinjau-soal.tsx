@@ -97,7 +97,7 @@ export function RingkasanTinjau({
               key={q.id}
               href={`#tinjau-${q.id}`}
               title={`Soal ${i + 1}: ${LABEL_STATUS[s]}`}
-              className={`btn-press w-9 h-9 rounded-xl border text-xs font-extrabold flex items-center justify-center tabular transition-transform hover:-translate-y-px ${GAYA_NOMOR[s]}`}
+              className={`btn-press w-9 h-9 rounded-xl border text-xs font-extrabold flex items-center justify-center tabular sm:hover:-translate-y-px ${GAYA_NOMOR[s]}`}
             >
               {i + 1}
               <span className="sr-only"> ({LABEL_STATUS[s]})</span>
@@ -156,7 +156,7 @@ export function KartuTinjau({
           </span>
         </div>
         {pil && (
-          <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${pil.kelas}`}>
+          <span className={`inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full shrink-0 ${pil.kelas}`}>
             <pil.ikon className="w-3.5 h-3.5" /> {pil.teks}
           </span>
         )}
@@ -195,12 +195,12 @@ export function KartuTinjau({
                 <span className="flex-1 min-w-0">{teks}</span>
                 <span className="flex flex-wrap justify-end gap-1.5 shrink-0">
                   {dipilih && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/80">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/80">
                       {status === 'benar' ? <CheckCircle2 className="w-3 h-3" /> : status === 'salah' ? <XCircle className="w-3 h-3" /> : <Check className="w-3 h-3" />} Jawaban Anda
                     </span>
                   )}
                   {kunciIni && !dipilih && (
-                    <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]">
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-[#E4F8EE] text-[#15885A]">
                       <CheckCircle2 className="w-3 h-3" /> Kunci jawaban
                     </span>
                   )}
@@ -213,7 +213,7 @@ export function KartuTinjau({
       ) : (
         <div className="space-y-3">
           <div className="text-sm p-3.5 rounded-xl bg-white/90 border border-[#DCEAF7] text-[#1F2A37] whitespace-pre-wrap leading-relaxed">
-            <span className="text-[11px] font-bold text-[#66748C] uppercase tracking-wide block mb-1">Jawaban Anda</span>
+            <span className="text-xs font-bold text-[#66748C] uppercase tracking-wide block mb-1">Jawaban Anda</span>
             {jawaban?.trim() ? (
               jawaban
             ) : lampiranSoal?.length ? (
@@ -227,7 +227,7 @@ export function KartuTinjau({
           )}
           {hasil?.pembahasan && (
             <div className="text-sm p-3.5 rounded-xl bg-[#F0FBF5] border border-[#BBF7D0] text-[#14532D] whitespace-pre-wrap leading-relaxed">
-              <span className="text-[11px] font-bold text-[#15885A] uppercase tracking-wide mb-1 flex items-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> Contoh jawaban dari guru</span>
+              <span className="text-xs font-bold text-[#15885A] uppercase tracking-wide mb-1 flex items-center gap-1"><Lightbulb className="w-3.5 h-3.5" /> Contoh jawaban dari guru</span>
               {hasil.pembahasan}
             </div>
           )}
