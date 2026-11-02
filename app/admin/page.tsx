@@ -6,9 +6,16 @@ import { createClient } from '@/lib/supabase/server';
 import { Navbar } from '@/components/navbar';
 import { StaffNav } from '@/components/staff-nav';
 import { tanggalIni, waktuRelatif } from '@/lib/waktu';
+import { KartuPenyimpanan, type RingkasanPenyimpanan } from '@/components/kartu-penyimpanan';
 import { Users, UserCheck, School, ArrowRight, Sparkles, Hourglass, Megaphone, Eye, AlertTriangle, Star } from 'lucide-react';
 
 export const metadata: Metadata = { title: 'Ringkasan Admin' };
+
+/** Kuota paket Supabase (MB) dari env server; bawaan paket Free: Storage 1 GB, Database 500 MB. */
+function kuotaMb(nilai: string | undefined, bawaan: number) {
+  const n = Number(nilai);
+  return Number.isFinite(n) && n > 0 ? n : bawaan;
+}
 
 export default async function AdminPage() {
   const supabase = createClient();
@@ -18,13 +25,14 @@ export default async function AdminPage() {
   const awalHari = new Date(`${tanggalIni()}T00:00:00+07:00`);
   const sebulan = new Date(Date.now() - 30 * 86400000).toISOString();
 
-  const [usersRes, kelasRes, anggotaRes, pengumumanRes, pengumumanBulanRes, tabRes] = await Promise.all([
+  const [usersRes, kelasRes, anggotaRes, pengumumanRes, pengumumanBulanRes, tabRes, penyimpananRes] = await Promise.all([
     supabase.from('users').select('id, email, full_name, role, status_approval, kelas_diminta, created_at').order('created_at', { ascending: false }),
     supabase.from('kelas').select('id, nama').order('nama'),
     supabase.from('kelas_anggota').select('kelas_id, user_id, peran'),
     supabase.from('pengumuman').select('id, judul, penting, nama_pembuat, peran_pembuat, created_at').order('created_at', { ascending: false }).limit(4),
     supabase.from('pengumuman').select('id', { count: 'exact', head: true }).gte('created_at', sebulan),
     supabase.from('tab_switch_logs').select('id_siswa, created_at, siswa:id_siswa(full_name, class_name)').gte('created_at', awalHari.toISOString()).limit(1000),
+    supabase.rpc('ringkasan_penyimpanan'),
   ]);
 
   const users = usersRes.data ?? [];
@@ -197,6 +205,13 @@ export default async function AdminPage() {
               </ul>
             )}
           </section>
+
+          <KartuPenyimpanan
+            data={(penyimpananRes.data as RingkasanPenyimpanan | null) ?? null}
+            galat={penyimpananRes.error}
+            kuotaStorageMb={kuotaMb(process.env.KUOTA_STORAGE_MB, 1024)}
+            kuotaDatabaseMb={kuotaMb(process.env.KUOTA_DATABASE_MB, 500)}
+          />
         </div>
       </div>
     </div>

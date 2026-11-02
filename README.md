@@ -15,7 +15,9 @@ pengumuman, notifikasi, pemantauan aktivitas siswa, dan rekap nilai.
    - `SUPABASE_SECRET_KEY` (opsional, disarankan) = secret key Supabase, hanya dibaca server. Dibutuhkan untuk
      membuat akun langsung aktif, menghapus akun, dan mengatur ulang kata sandi dari menu admin.
    - Opsional: `NEXT_PUBLIC_ADMIN_CONTACT` (kontak admin di halaman masuk), `GEMINI_MODELS` (urutan model,
-     dipisah koma), `KOREKSI_AI_MODE=aturan` (paksa memakai mesin koreksi berbasis rubrik tanpa AI).
+     dipisah koma), `KOREKSI_AI_MODE=aturan` (paksa memakai mesin koreksi berbasis rubrik tanpa AI),
+     `KUOTA_STORAGE_MB` / `KUOTA_DATABASE_MB` (kuota paket Supabase untuk kartu Penyimpanan admin; bawaan paket Free
+     1024 MB / 500 MB).
 3. Jalankan migrasi database (lihat di bawah).
 4. `npm run dev`, buka http://localhost:3000. Setelah mengubah file `.env*`, restart `npm run dev`.
 
@@ -38,6 +40,9 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
 5. `supabase/migrations/20261102_gambar_soal.sql`: gambar pada soal (`questions.gambar`, maks 5 gambar per soal +
    1 gambar per opsi A–D), bucket publik-baca `gambar-soal` (khusus gambar, maks 5 MB, hanya guru/admin yang boleh
    mengunggah/menghapus), dan `simpan_soal()` v5: opsi pilihan ganda dianggap terisi bila berisi teks **atau** gambar.
+6. `supabase/migrations/20261103_ringkasan_penyimpanan.sql`: fungsi baca khusus admin `ringkasan_penyimpanan()`
+   (jumlah & ukuran berkas per bucket Storage + ukuran database) untuk kartu **Penyimpanan** di Ringkasan admin.
+   Tidak mengubah data.
 
 ## Pengaturan Supabase Auth
 
@@ -61,8 +66,9 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
   jawaban ideal untuk koreksi AI; gambar soal & gambar opsi lewat pilih/seret/tempel Ctrl+V, otomatis dikompres
   dengan progres & cek ketajaman, objek Storage yang tidak dipakai ikut dibersihkan saat simpan/batal/hapus), Pengumuman, Jadwal & Agenda, Aktivitas Siswa (online, progres, keluar tab),
   Rekap Nilai (+ ekspor Excel).
-- **Admin**: Ringkasan, Pengguna (tambah/impor CSV/setujui/nonaktifkan/hapus, peran, kelas, atur ulang sandi),
-  Kelas (anggota guru & siswa), Jadwal mengajar, Pengumuman sekolah (+ agenda dari guru), Monitor Keluar Tab, Hak Akses.
+- **Admin**: Ringkasan (termasuk pemakaian penyimpanan berkas & database), Pengguna (tambah/impor CSV/setujui/
+  nonaktifkan/hapus, peran, kelas, atur ulang sandi), Kelas (anggota guru & siswa), Jadwal mengajar,
+  Pengumuman sekolah (+ agenda dari guru), Monitor Keluar Tab, Hak Akses.
   Admin tidak membuka menu guru (koreksi, materi, bank soal).
 - Akun yang belum disetujui, ditolak/nonaktif, atau tidak punya baris di `public.users` tidak bisa masuk.
 
