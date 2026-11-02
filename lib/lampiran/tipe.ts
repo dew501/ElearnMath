@@ -254,3 +254,109 @@ export function hitungHematPersen(asli: number, hasil: number): number {
   return Math.round(((asli - hasil) / asli) * 1000) / 10;
 }
 
+// ---------------------------------------------------------------------------------------
+// Gambar lampiran pada soal (dibuat guru): bucket publik-baca "gambar-soal".
+// ---------------------------------------------------------------------------------------
+
+export const BUCKET_GAMBAR_SOAL = 'gambar-soal';
+export const MAKS_GAMBAR_PER_SOAL = 5;
+export const MAKS_UKURAN_GAMBAR_SOAL_MENTAH = 25 * 1024 * 1024; // sebelum kompresi
+export const MAKS_UKURAN_GAMBAR_SOAL_SIMPAN = 5 * 1024 * 1024; // batas bucket setelah kompresi
+export const ACCEPT_GAMBAR_SOAL = 'image/jpeg,image/png,image/webp,image/gif,image/bmp,.heic,.heif';
+export const HURUF_OPSI_GAMBAR = ['A', 'B', 'C', 'D'] as const;
+export type HurufOpsiGambar = (typeof HURUF_OPSI_GAMBAR)[number];
+
+export interface GambarSoal {
+  path: string;
+  name: string;
+  original_name?: string;
+  mime?: string;
+  original_size?: number;
+  compressed_size?: number;
+  hemat_persen?: number;
+  quality_score?: number;
+  quality_status?: StatusKualitasKompresi;
+}
+
+export interface GambarSoalSet {
+  pertanyaan: GambarSoal[];
+  opsi: Partial<Record<HurufOpsiGambar, GambarSoal | null>>;
+}
+
+// Harus sama dengan public.gambar_soal_valid() di migrasi 20261102 (garis bawah dari nama berkas diizinkan).
+const POLA_PATH_GAMBAR_SOAL = /^soal\/[A-Za-z0-9_./-]+$/;
+
+function itemGambarValid(x: unknown): x is GambarSoal {
+  if (!x || typeof x !== 'object') return false;
+  const p = (x as { path?: unknown }).path;
+  return typeof p === 'string' && POLA_PATH_GAMBAR_SOAL.test(p) && !p.includes('..') && p.length <= 300;
+}
+
+/** Normalisasi isi kolom questions.gambar (aman untuk data kosong/rusak/pra-migrasi). */
+export function normalisasiGambarSoal(json: unknown): GambarSoalSet {
+  const kosong: GambarSoalSet = { pertanyaan: [], opsi: {} };
+  if (!json || typeof json !== 'object' || Array.isArray(json)) return kosong;
+  const j = json as { pertanyaan?: unknown; opsi?: unknown };
+  const pertanyaan = Array.isArray(j.pertanyaan)
+    ? j.pertanyaan.filter(itemGambarValid).slice(0, MAKS_GAMBAR_PER_SOAL)
+    : [];
+  const opsi: GambarSoalSet['opsi'] = {};
+  if (j.opsi && typeof j.opsi === 'object' && !Array.isArray(j.opsi)) {
+    for (const h of HURUF_OPSI_GAMBAR) {
+      const v = (j.opsi as Record<string, unknown>)[h];
+      if (itemGambarValid(v)) opsi[h] = v;
+    }
+  }
+  return { pertanyaan, opsi };
+}
+
+/** Bentuk muatan kolom gambar untuk simpan_soal (null bila tidak ada gambar sama sekali). */
+export function muatanGambarSoal(set: GambarSoalSet, tipe: 'pg' | 'essay'): GambarSoalSet | null {
+  const pertanyaan = set.pertanyaan.filter(itemGambarValid).slice(0, MAKS_GAMBAR_PER_SOAL);
+  const opsi: GambarSoalSet['opsi'] = {};
+  if (tipe === 'pg') {
+    for (const h of HURUF_OPSI_GAMBAR) {
+      const v = set.opsi[h];
+      if (itemGambarValid(v)) opsi[h] = v;
+    }
+  }
+  if (!pertanyaan.length && !Object.keys(opsi).length) return null;
+  return { pertanyaan, opsi };
+}
+
+/** Semua path objek Storage yang dirujuk sebuah set gambar soal. */
+export function daftarPathGambarSoal(set: GambarSoalSet | null | undefined): string[] {
+  if (!set) return [];
+  const out = set.pertanyaan.map((g) => g.path);
+  for (const h of HURUF_OPSI_GAMBAR) {
+    const v = set.opsi[h];
+    if (v?.path) out.push(v.path);
+  }
+  return Array.from(new Set(out));
+}
+
+/** Path yang ada di `sebelum` tetapi tidak lagi dipakai di `sesudah` (untuk dibersihkan dari Storage). */
+export function selisihPathGambar(sebelum: string[], sesudah: string[]): string[] {
+  const pakai = new Set(sesudah);
+  return Array.from(new Set(sebelum.filter((p) => p && !pakai.has(p))));
+}
+
+/** URL publik gambar soal (bucket publik-baca). */
+export function urlGambarSoal(path: string): string {
+  const base = (process.env.NEXT_PUBLIC_SUPABASE_URL || '').replace(/\/+$/, '');
+  const encoded = path
+    .split('/')
+    .map((seg) => encodeURIComponent(seg))
+    .join('/');
+  return `${base}/storage/v1/object/public/${BUCKET_GAMBAR_SOAL}/${encoded}`;
+}
+
+/** Validasi berkas yang dipilih guru sebagai gambar soal. */
+export function validasiBerkasGambarSoal(nama: string, mime: string): { ok: true } | { ok: false; pesan: string } {
+  const ext = ekstensiFile(nama);
+  const m = (mime || '').toLowerCase();
+  const extOk = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'heic', 'heif'].includes(ext);
+  if (extOk || (m.startsWith('image/') && !m.includes('svg'))) return { ok: true };
+  return { ok: false, pesan: `Berkas "${nama}" bukan gambar. Gunakan JPG, PNG, WEBP, GIF, atau HEIC.` };
+}
+

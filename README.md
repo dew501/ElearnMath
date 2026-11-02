@@ -35,6 +35,9 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
    (`questions.format_file`, bawaan PDF/Word/Gambar), bucket privat `jawaban-essay` untuk foto kamera & berkas jawaban
    terkompresi siswa (terkunci setelah kumpul final kecuali izin pengerjaan ulang), serta validasi lampiran & penyimpanan
    hasil deteksi watermark/metadata AI pada `kumpulkan_pengerjaan()`.
+5. `supabase/migrations/20261102_gambar_soal.sql`: gambar pada soal (`questions.gambar`, maks 5 gambar per soal +
+   1 gambar per opsi A–D), bucket publik-baca `gambar-soal` (khusus gambar, maks 5 MB, hanya guru/admin yang boleh
+   mengunggah/menghapus), dan `simpan_soal()` v5: opsi pilihan ganda dianggap terisi bila berisi teks **atau** gambar.
 
 ## Pengaturan Supabase Auth
 
@@ -55,7 +58,8 @@ Jalankan di Supabase > SQL Editor, masing-masing sekali (aman dijalankan ulang; 
   (`tinjau_pengerjaan()`; kunci soal umum yang juga dipakai di bab lain tetap tertutup).
 - **Guru**: Koreksi (Koreksi AI, validasi nilai, izin ulang, hapus pengumpulan), Materi (subbab, terbit, kelas tujuan,
   tanggal buka, unggah PDF/gambar), LKPD (tujuan, petunjuk, tahapan konstruktivis, soal per tahap), Bank Soal (rubrik &
-  jawaban ideal untuk koreksi AI), Pengumuman, Jadwal & Agenda, Aktivitas Siswa (online, progres, keluar tab),
+  jawaban ideal untuk koreksi AI; gambar soal & gambar opsi lewat pilih/seret/tempel Ctrl+V, otomatis dikompres
+  dengan progres & cek ketajaman, objek Storage yang tidak dipakai ikut dibersihkan saat simpan/batal/hapus), Pengumuman, Jadwal & Agenda, Aktivitas Siswa (online, progres, keluar tab),
   Rekap Nilai (+ ekspor Excel).
 - **Admin**: Ringkasan, Pengguna (tambah/impor CSV/setujui/nonaktifkan/hapus, peran, kelas, atur ulang sandi),
   Kelas (anggota guru & siswa), Jadwal mengajar, Pengumuman sekolah (+ agenda dari guru), Monitor Keluar Tab, Hak Akses.
@@ -68,7 +72,8 @@ Tombol **Koreksi dengan AI** di panel koreksi memanggil `/api/koreksi-ai` (serve
 Gemini (free tier; urutan model `gemini-3.5-flash` → `gemini-3.5-flash-lite` → `gemini-flash-lite-latest`) memakai
 rubrik & jawaban ideal dari bank soal; pilihan ganda dinilai dari kunci. Bila kuota/AI tidak tersedia, saran dibuat
 mesin cadangan berbasis rubrik (`lib/koreksi/aturan.ts`). Saran **tidak** terlihat siswa sampai guru menyimpan nilai
-(validasi). Yang dikirim ke AI hanya soal, rubrik, dan jawaban (tanpa nama/email siswa).
+(validasi). Yang dikirim ke AI hanya soal (termasuk gambar soal uraian sebagai konteks, dipisahkan tegas dari lampiran
+jawaban siswa), rubrik, dan jawaban (tanpa nama/email siswa).
 
 ## Deploy (mis. Vercel)
 

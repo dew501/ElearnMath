@@ -1,6 +1,6 @@
 // Data & pesan bersama untuk halaman pengerjaan siswa dan panel koreksi guru.
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { LampiranJawaban } from '@/lib/lampiran/tipe';
+import { normalisasiGambarSoal, type GambarSoal, type HurufOpsiGambar, type LampiranJawaban } from '@/lib/lampiran/tipe';
 
 export type JenisPengerjaan = 'lkpd' | 'latihan' | 'evaluasi';
 
@@ -41,13 +41,19 @@ export interface Soal {
   jawaban_ideal?: string | null;
   rubrik?: KriteriaRubrik[] | null;
   format_file?: string[] | null;
+  /** Lampiran gambar soal & gambar opsi PG (lihat GambarSoalSet). */
+  gambar?: unknown;
 }
 
 /** Kolom soal yang boleh dibaca siswa (tanpa kunci jawaban, jawaban ideal, dan rubrik). */
 export const KOLOM_SOAL_SISWA_LAMA = 'id, urutan, tipe, pertanyaan, opsi_a, opsi_b, opsi_c, opsi_d, bobot, tahap';
-export const KOLOM_SOAL_SISWA = `${KOLOM_SOAL_SISWA_LAMA}, format_file`;
+export const KOLOM_SOAL_SISWA_V4 = `${KOLOM_SOAL_SISWA_LAMA}, format_file`;
+export const KOLOM_SOAL_SISWA = `${KOLOM_SOAL_SISWA_V4}, gambar`;
 
-/** Muat soal untuk siswa dengan fallback aman bila migrasi kolom format_file belum dijalankan. */
+const kolomBelumAda = (err: { message?: string; code?: string } | null, kolom: string) =>
+  !!err && (err.code === '42703' || new RegExp(kolom, 'i').test(err.message || ''));
+
+/** Muat soal untuk siswa dengan fallback aman bila migrasi kolom gambar / format_file belum dijalankan. */
 export async function muatSoalSiswa(
   supabase: SupabaseClient,
   jenis: JenisPengerjaan,
@@ -63,9 +69,17 @@ export async function muatSoalSiswa(
       .order('urutan', { ascending: true });
 
   const r1 = await jalankan(KOLOM_SOAL_SISWA);
-  if (r1.error && (r1.error.code === '42703' || /format_file/i.test(r1.error.message || ''))) {
-    const r2 = await jalankan(KOLOM_SOAL_SISWA_LAMA);
+  if (kolomBelumAda(r1.error, 'gambar')) {
+    const r2 = await jalankan(KOLOM_SOAL_SISWA_V4);
+    if (kolomBelumAda(r2.error, 'format_file')) {
+      const r3 = await jalankan(KOLOM_SOAL_SISWA_LAMA);
+      return { data: (r3.data as unknown as Soal[]) ?? null, error: r3.error };
+    }
     return { data: (r2.data as unknown as Soal[]) ?? null, error: r2.error };
+  }
+  if (kolomBelumAda(r1.error, 'format_file')) {
+    const r3 = await jalankan(KOLOM_SOAL_SISWA_LAMA);
+    return { data: (r3.data as unknown as Soal[]) ?? null, error: r3.error };
   }
   return { data: (r1.data as unknown as Soal[]) ?? null, error: r1.error };
 }
@@ -113,6 +127,24 @@ export const OPSI = ['A', 'B', 'C', 'D'] as const;
 export function teksOpsi(soal: Soal, huruf: string): string | null {
   const key = `opsi_${huruf.toLowerCase()}` as 'opsi_a' | 'opsi_b' | 'opsi_c' | 'opsi_d';
   return soal[key] ?? null;
+}
+
+/** Gambar milik satu opsi PG (null bila tidak ada). */
+export function gambarOpsi(soal: Soal, huruf: string): GambarSoal | null {
+  const h = huruf.toUpperCase() as HurufOpsiGambar;
+  return normalisasiGambarSoal(soal.gambar).opsi[h] ?? null;
+}
+
+/** Opsi PG dianggap ada bila berisi teks ATAU gambar. */
+export function opsiTersedia(soal: Soal, huruf: string): boolean {
+  return Boolean(teksOpsi(soal, huruf)?.trim()) || Boolean(gambarOpsi(soal, huruf));
+}
+
+/** Label opsi untuk ringkasan teks (mis. panel koreksi): teks opsi, atau penanda gambar. */
+export function labelOpsi(soal: Soal, huruf: string): string {
+  const t = teksOpsi(soal, huruf)?.trim();
+  if (t) return gambarOpsi(soal, huruf) ? `${t} [+gambar]` : t;
+  return gambarOpsi(soal, huruf) ? '[gambar]' : '';
 }
 
 export const bobotSoal = (soal: Soal) => Number(soal.bobot ?? 50);
@@ -185,6 +217,8 @@ export function pesanGalat(err: { message?: string; code?: string } | null | und
     LAMPIRAN_TERLALU_BANYAK: 'Maksimal 5 berkas/foto untuk setiap butir soal essay.',
     LAMPIRAN_BUKAN_MILIK: 'Berkas lampiran tidak valid atau bukan milik akun Anda.',
     FORMAT_BERKAS_DITOLAK: 'Format berkas tidak sesuai dengan ketentuan guru pada soal ini.',
+    GAMBAR_TIDAK_VALID: 'Data gambar soal tidak valid. Hapus lalu unggah ulang gambarnya.',
+    GAMBAR_TERLALU_BANYAK: 'Maksimal 5 gambar untuk setiap soal.',
     kelas_nama_unik: 'Nama kelas itu sudah dipakai.',
     kelas_anggota_satu_kelas_siswa: 'Siswa itu sudah terdaftar di kelas lain.',
     jadwal_check: 'Jam selesai harus setelah jam mulai.',
@@ -202,6 +236,9 @@ export function pesanGalat(err: { message?: string; code?: string } | null | und
     return 'Akses ditolak: akun Anda tidak punya izin untuk tindakan ini (atau migrasi database belum dijalankan).';
   }
   if (/bucket not found/i.test(msg)) {
+    if (/gambar-soal/i.test(msg)) {
+      return 'Penyimpanan gambar soal belum disiapkan: jalankan migrasi database 20261102 terlebih dahulu.';
+    }
     if (/jawaban-essay/i.test(msg)) {
       return 'Penyimpanan berkas jawaban essay belum disiapkan: jalankan migrasi database 20261029 terlebih dahulu.';
     }

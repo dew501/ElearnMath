@@ -1,5 +1,7 @@
 import React from 'react';
-import { OPSI, apakahSoalTerjawab, teksOpsi, type Soal } from '@/lib/pengerjaan';
+import { OPSI, apakahSoalTerjawab, gambarOpsi, opsiTersedia, teksOpsi, type Soal } from '@/lib/pengerjaan';
+import { GaleriGambarSoal, GambarOpsi } from '@/components/gambar-soal';
+import { normalisasiGambarSoal } from '@/lib/lampiran/tipe';
 import type { LampiranJawaban } from '@/lib/lampiran/tipe';
 import { DaftarLampiran } from '@/components/daftar-lampiran';
 import { CheckCircle2, XCircle, MinusCircle, Clock, Lightbulb, Check, Info } from 'lucide-react';
@@ -162,13 +164,15 @@ export function KartuTinjau({
         )}
       </div>
 
-      <div className="text-sm md:text-[15px] font-semibold text-[#1F2A37] mb-4 leading-relaxed">{q.pertanyaan}</div>
+      <div className="text-sm md:text-[15px] font-semibold text-[#1F2A37] mb-4 leading-relaxed whitespace-pre-wrap">{q.pertanyaan}</div>
+      <GaleriGambarSoal items={normalisasiGambarSoal(q.gambar).pertanyaan} className="mb-4" />
 
       {q.tipe === 'pg' ? (
         <ul className="grid gap-2" aria-label={`Pilihan jawaban soal ${nomor}`}>
           {OPSI.map((h) => {
+            if (!opsiTersedia(q, h)) return null;
             const teks = teksOpsi(q, h);
-            if (!teks) return null;
+            const gbrOpsi = gambarOpsi(q, h);
             const dipilih = pilihan === h;
             const kunciIni = kunci === h;
             const gaya = dipilih
@@ -192,7 +196,10 @@ export function KartuTinjau({
             return (
               <li key={h} className={`flex items-center gap-3 p-3 rounded-xl border-2 text-sm ${gaya} ${dipilih ? 'font-bold' : ''}`}>
                 <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-extrabold text-xs shrink-0 ${gayaHuruf}`}>{h}</span>
-                <span className="flex-1 min-w-0">{teks}</span>
+                <span className="flex-1 min-w-0 flex flex-col items-start sm:flex-row sm:items-center gap-2">
+                  {gbrOpsi && <GambarOpsi item={gbrOpsi} huruf={h} />}
+                  {teks ? <span>{teks}</span> : <span className="sr-only">Opsi {h} berupa gambar</span>}
+                </span>
                 <span className="flex flex-wrap justify-end gap-1.5 shrink-0">
                   {dipilih && (
                     <span className="inline-flex items-center gap-1 text-[11px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-full bg-white/80">

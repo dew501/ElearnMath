@@ -9,9 +9,11 @@ import { Modal } from '@/components/ui/modal';
 import { Toast, type ToastData } from '@/components/ui/toast';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { FormSoal, type AwalSoal, type MateriRingkas } from '@/components/form-soal';
-import { JENIS, OPSI, TAHAPAN_BAWAAN, bobotSoal, pesanGalat, teksOpsi, type JenisPengerjaan, type Soal } from '@/lib/pengerjaan';
-import { labelFormatFile } from '@/lib/lampiran/tipe';
-import { Plus, PencilLine, Trash2, Inbox, AlertTriangle, CheckCircle2, ListChecks, Sparkles, Layers, Paperclip } from 'lucide-react';
+import { JENIS, OPSI, TAHAPAN_BAWAAN, bobotSoal, gambarOpsi, opsiTersedia, pesanGalat, teksOpsi, type JenisPengerjaan, type Soal } from '@/lib/pengerjaan';
+import { daftarPathGambarSoal, labelFormatFile, normalisasiGambarSoal } from '@/lib/lampiran/tipe';
+import { hapusGambarSoalStorage } from '@/lib/lampiran/unggah-xhr';
+import { GaleriGambarSoal, GambarOpsi } from '@/components/gambar-soal';
+import { Plus, PencilLine, Trash2, Inbox, AlertTriangle, CheckCircle2, ListChecks, Sparkles, Layers, Paperclip, Image as ImageIcon } from 'lucide-react';
 
 const KATEGORI = Object.keys(JENIS) as JenisPengerjaan[];
 const namaTahap = (k?: string | null) => TAHAPAN_BAWAAN.find((t) => t.kunci === k)?.judul ?? k;
@@ -85,10 +87,13 @@ export default function BankSoalPage() {
   const hapusSoal = async () => {
     if (!hapus) return;
     setMenghapus(true);
-    const { error } = await supabase.rpc('hapus_soal', { p_id: hapus.id });
+    const sasaran = hapus;
+    const { error } = await supabase.rpc('hapus_soal', { p_id: sasaran.id });
     setMenghapus(false);
     setHapus(null);
     if (error) return setToast({ id: Date.now(), tone: 'error', text: `Soal gagal dihapus. ${pesanGalat(error)}` });
+    // Gambar soal ikut dibersihkan dari Storage (galat diabaikan: soal sudah terhapus)
+    hapusGambarSoalStorage(supabase, daftarPathGambarSoal(normalisasiGambarSoal(sasaran.gambar))).catch(() => {});
     setToast({ id: Date.now(), tone: 'success', text: 'Soal dihapus.' });
     muat();
   };
@@ -181,7 +186,10 @@ export default function BankSoalPage() {
                   <p className="text-xs text-[#66748C] px-1">Belum ada soal.</p>
                 ) : (
                   <div className="space-y-3">
-                    {g.isi.map((q) => (
+                    {g.isi.map((q) => {
+                      const gbr = normalisasiGambarSoal(q.gambar);
+                      const jmlGambar = gbr.pertanyaan.length + Object.values(gbr.opsi).filter(Boolean).length;
+                      return (
                       <article key={q.id} className="glass-card p-5">
                         <div className="flex items-start justify-between gap-3">
                           <div className="flex items-center gap-2 flex-wrap">
@@ -190,6 +198,9 @@ export default function BankSoalPage() {
                             <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-[#F1F5F9] text-[#4B5A70]">Bobot {bobotSoal(q)}</span>
                             {q.tahap && (
                               <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-[#FFF1DD] text-[#B45309]"><Layers className="w-3 h-3" /> {namaTahap(q.tahap)}</span>
+                            )}
+                            {jmlGambar > 0 && (
+                              <span className="inline-flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full bg-[#EAF6FF] text-[#2E7BC4]"><ImageIcon className="w-3 h-3" /> {jmlGambar} gambar</span>
                             )}
                             {q.tipe !== 'pg' && (
                               <>
@@ -212,17 +223,20 @@ export default function BankSoalPage() {
                           </div>
                         </div>
                         <p className="text-sm font-semibold text-[#1F2A37] mt-3 leading-relaxed whitespace-pre-wrap">{q.pertanyaan}</p>
+                        <GaleriGambarSoal items={gbr.pertanyaan} ukuran="kecil" className="mt-3" />
                         {q.tipe === 'pg' && (
                           <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 mt-3">
                             {OPSI.map((h) => {
+                              if (!opsiTersedia(q, h)) return null;
                               const t = teksOpsi(q, h);
-                              if (!t) return null;
+                              const g = gambarOpsi(q, h);
                               const kunci = (q.kunci_jawaban ?? '').toUpperCase() === h;
                               return (
                                 <div key={h} className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs ${kunci ? 'bg-[#E4F8EE] text-[#15885A] font-bold' : 'bg-white/70 text-[#4B5A70]'}`}>
-                                  <span className={`w-5 h-5 rounded-md flex items-center justify-center text-[11px] font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9]'}`}>{h}</span>
-                                  {t}
-                                  {kunci && <CheckCircle2 className="w-3.5 h-3.5 ml-auto" />}
+                                  <span className={`w-5 h-5 shrink-0 rounded-md flex items-center justify-center text-[11px] font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9]'}`}>{h}</span>
+                                  {g && <GambarOpsi item={g} huruf={h} ukuran="kecil" />}
+                                  {t && <span className="min-w-0">{t}</span>}
+                                  {kunci && <CheckCircle2 className="w-3.5 h-3.5 ml-auto shrink-0" />}
                                 </div>
                               );
                             })}
@@ -232,7 +246,8 @@ export default function BankSoalPage() {
                           <p className="mt-3 text-xs text-[#4B5A70] bg-white/70 rounded-lg px-3 py-2"><span className="font-bold text-[#6D28D9]">Jawaban ideal:</span> {q.jawaban_ideal}</p>
                         )}
                       </article>
-                    ))}
+                      );
+                    })}
                   </div>
                 )}
               </section>
@@ -270,7 +285,7 @@ export default function BankSoalPage() {
         }
       >
         <p className="line-clamp-3">&ldquo;{hapus?.pertanyaan}&rdquo;</p>
-        <p className="mt-2">Jawaban siswa yang sudah terkumpul tetap tersimpan, tetapi soal ini tidak muncul lagi untuk siswa.</p>
+        <p className="mt-2">Jawaban siswa yang sudah terkumpul tetap tersimpan, tetapi soal ini tidak muncul lagi untuk siswa. Gambar pada soal ini ikut dihapus.</p>
       </Modal>
 
       <Toast toast={toast} onClose={() => setToast(null)} />

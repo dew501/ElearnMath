@@ -2,15 +2,20 @@
 // agar persentase unggahan (0%–100%) terpantau secara nyata dan dapat dibatalkan kapan saja.
 
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { BUCKET_JAWABAN_ESSAY } from '@/lib/lampiran/tipe';
+import { BUCKET_GAMBAR_SOAL, BUCKET_JAWABAN_ESSAY } from '@/lib/lampiran/tipe';
 import type { JenisPengerjaan } from '@/lib/pengerjaan';
 
 export interface ParameterUnggahXhr {
   supabase: SupabaseClient;
-  uid: string;
-  jenis: JenisPengerjaan;
-  idMateri: string;
-  idSoal: string;
+  /** Lampiran jawaban siswa: path disusun otomatis di folder UID siswa (wajib bila `path` tidak diisi). */
+  uid?: string;
+  jenis?: JenisPengerjaan;
+  idMateri?: string;
+  idSoal?: string;
+  /** Path objek kustom (mis. gambar soal guru). Bila diisi, uid/jenis/idMateri/idSoal diabaikan. */
+  path?: string;
+  /** Bucket tujuan; bawaan: jawaban-essay. */
+  bucket?: string;
   blob: Blob;
   namaSimpan: string;
   mime: string;
@@ -41,11 +46,28 @@ export function buatPathLampiranEssay(
   return `${uid}/${jenis}/${idMateri}/${idSoal}/${Date.now()}-${acak}-${namaAman}`;
 }
 
+/** Susun path gambar soal guru di bucket gambar-soal: soal/{uid guru}/{waktu}-{acak}-{nama}. */
+export function buatPathGambarSoal(uidGuru: string, namaSimpan: string): string {
+  const acak = Math.random().toString(36).slice(2, 8);
+  const uidAman = sanitasiNamaPath(uidGuru) || 'guru';
+  return `soal/${uidAman}/${Date.now()}-${acak}-${sanitasiNamaPath(namaSimpan)}`;
+}
+
 /** Unggah berkas dengan pelaporan progres byte nyata (0%–100%) dan dukungan pembatalan (AbortSignal). */
 export async function unggahLampiranXhr(param: ParameterUnggahXhr): Promise<{ path: string }> {
   const { supabase, uid, jenis, idMateri, idSoal, blob, namaSimpan, mime, onProgress, signal } = param;
+  const bucket = param.bucket || BUCKET_JAWABAN_ESSAY;
   if (signal?.aborted) {
     throw new DOMException('Unggahan dibatalkan.', 'AbortError');
+  }
+
+  let path: string;
+  if (param.path) {
+    path = param.path;
+  } else if (uid && jenis && idMateri && idSoal) {
+    path = buatPathLampiranEssay(uid, jenis, idMateri, idSoal, namaSimpan);
+  } else {
+    throw new Error('Tujuan penyimpanan berkas tidak lengkap.');
   }
 
   const {
@@ -62,12 +84,11 @@ export async function unggahLampiranXhr(param: ParameterUnggahXhr): Promise<{ pa
     throw new Error('Konfigurasi Supabase belum lengkap.');
   }
 
-  const path = buatPathLampiranEssay(uid, jenis, idMateri, idSoal, namaSimpan);
   const encodedPath = path
     .split('/')
     .map((seg) => encodeURIComponent(seg))
     .join('/');
-  const endpoint = `${baseUrl}/storage/v1/object/${BUCKET_JAWABAN_ESSAY}/${encodedPath}`;
+  const endpoint = `${baseUrl}/storage/v1/object/${bucket}/${encodedPath}`;
 
   const berkasBerMime = blob.type === mime ? blob : new Blob([blob], { type: mime || 'application/octet-stream' });
   const form = new FormData();
@@ -163,4 +184,14 @@ export async function hapusLampiranStorage(
   if (!bersih.length) return;
   for (const p of bersih) cacheSignedUrl.delete(p);
   await supabase.storage.from(BUCKET_JAWABAN_ESSAY).remove(bersih);
+}
+
+/** Hapus objek gambar soal dari bucket gambar-soal (khusus guru/admin; galat diabaikan pemanggil). */
+export async function hapusGambarSoalStorage(
+  supabase: SupabaseClient,
+  paths: string[]
+): Promise<void> {
+  const bersih = Array.from(new Set(paths.map((p) => (p || '').trim()).filter((p) => p.startsWith('soal/'))));
+  if (!bersih.length) return;
+  await supabase.storage.from(BUCKET_GAMBAR_SOAL).remove(bersih);
 }

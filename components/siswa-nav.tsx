@@ -77,7 +77,7 @@ export function SiswaNav({ aktif: aktifPaksa }: { aktif?: string }) {
   }, [hrefAktif]);
 
   return (
-    <nav aria-label="Menu siswa" className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-3 pb-1">
+    <nav aria-label="Menu siswa" className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 pt-3 pb-1">
       <div className="command-dock">
         <div
           ref={containerRef}

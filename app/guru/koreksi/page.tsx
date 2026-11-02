@@ -9,6 +9,8 @@ import { Modal } from '@/components/ui/modal';
 import { Toast, type ToastData } from '@/components/ui/toast';
 import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { PanelAi, type SaranAi } from '@/components/panel-ai';
+import { GaleriGambarSoal, GambarOpsi } from '@/components/gambar-soal';
+import { normalisasiGambarSoal } from '@/lib/lampiran/tipe';
 import { DaftarLampiran } from '@/components/daftar-lampiran';
 import { kemiripan, layakDibandingkan } from '@/lib/koreksi/kemiripan';
 import { useProfil } from '@/lib/use-profil';
@@ -25,6 +27,7 @@ import {
   petaJawaban,
   petaLampiran,
   teksOpsi,
+  gambarOpsi,
   type JenisPengerjaan,
   type Soal,
 } from '@/lib/pengerjaan';
@@ -765,11 +768,18 @@ export default function GuruKoreksiPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-[#66748C] mb-2">{q.pertanyaan}</p>
+                        <p className="text-xs text-[#66748C] mb-2 whitespace-pre-wrap">{q.pertanyaan}</p>
+                        <GaleriGambarSoal items={normalisasiGambarSoal(q.gambar).pertanyaan} ukuran="kecil" className="mb-2" />
                         {isPg ? (
-                          <div className="text-xs font-semibold p-2.5 rounded-lg bg-[#EAF6FF] text-[#1B4E80] space-y-1">
-                            <div>Jawaban Siswa: <strong>{jwb ? `${jwb.toUpperCase()}. ${teksOpsi(q, jwb) ?? ''}` : '-'}</strong></div>
-                            <div className="text-[#66748C]">Kunci: {q.kunci_jawaban ? `${q.kunci_jawaban.toUpperCase()}. ${teksOpsi(q, q.kunci_jawaban) ?? ''}` : '-'}</div>
+                          <div className="text-xs font-semibold p-2.5 rounded-lg bg-[#EAF6FF] text-[#1B4E80] space-y-1.5">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              Jawaban Siswa: <strong>{jwb ? `${jwb.toUpperCase()}. ${teksOpsi(q, jwb) ?? ''}` : '-'}</strong>
+                              {jwb && gambarOpsi(q, jwb) && <GambarOpsi item={gambarOpsi(q, jwb)!} huruf={jwb.toUpperCase()} ukuran="kecil" />}
+                            </div>
+                            <div className="text-[#66748C] flex items-center gap-2 flex-wrap">
+                              Kunci: {q.kunci_jawaban ? `${q.kunci_jawaban.toUpperCase()}. ${teksOpsi(q, q.kunci_jawaban) ?? ''}` : '-'}
+                              {q.kunci_jawaban && gambarOpsi(q, q.kunci_jawaban) && <GambarOpsi item={gambarOpsi(q, q.kunci_jawaban)!} huruf={q.kunci_jawaban.toUpperCase()} ukuran="kecil" />}
+                            </div>
                           </div>
                         ) : (
                           <div className="space-y-2.5">

@@ -91,7 +91,7 @@ export function StaffNav({ role }: { role: PeranStaf | null }) {
   }, [role, hrefAktif]);
 
   return (
-    <nav aria-label="Menu staf" className="max-w-[1200px] mx-auto px-4 sm:px-6 pt-3 pb-1">
+    <nav aria-label="Menu staf" className="w-full max-w-[1200px] mx-auto px-4 sm:px-6 pt-3 pb-1">
       <div className="command-dock min-h-[48px]">
         <div className="relative p-1.5 flex items-center gap-0.5 overflow-x-auto [scrollbar-width:none]">
           {indikator && (

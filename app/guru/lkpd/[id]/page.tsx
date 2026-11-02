@@ -11,8 +11,10 @@ import { Skeleton, Spinner } from '@/components/ui/skeleton';
 import { FormSoal, type AwalSoal, type MateriRingkas } from '@/components/form-soal';
 import { PengantarLkpd, KepalaTahap } from '@/components/lkpd-pengantar';
 import { UUID_RE } from '@/lib/akses';
-import { OPSI, bobotSoal, pesanGalat, tahapanDari, teksOpsi, type Soal, type TahapLkpd } from '@/lib/pengerjaan';
-import { labelFormatFile } from '@/lib/lampiran/tipe';
+import { OPSI, bobotSoal, gambarOpsi, opsiTersedia, pesanGalat, tahapanDari, teksOpsi, type Soal, type TahapLkpd } from '@/lib/pengerjaan';
+import { daftarPathGambarSoal, labelFormatFile, normalisasiGambarSoal } from '@/lib/lampiran/tipe';
+import { hapusGambarSoalStorage } from '@/lib/lampiran/unggah-xhr';
+import { GaleriGambarSoal, GambarOpsi } from '@/components/gambar-soal';
 import { useProfil } from '@/lib/use-profil';
 import { ArrowLeft, Save, Plus, Trash2, ChevronUp, ChevronDown, PencilLine, Eye, PencilRuler, AlertTriangle, Layers, Sparkles, Paperclip } from 'lucide-react';
 
@@ -129,9 +131,12 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
 
   const hapusSoal = async () => {
     if (!hapus) return;
-    const { error } = await supabase.rpc('hapus_soal', { p_id: hapus.id });
+    const sasaran = hapus;
+    const { error } = await supabase.rpc('hapus_soal', { p_id: sasaran.id });
     setHapus(null);
     if (error) return setToast({ id: Date.now(), tone: 'error', text: pesanGalat(error) });
+    // Gambar soal ikut dibersihkan dari Storage (galat diabaikan: soal sudah terhapus)
+    hapusGambarSoalStorage(supabase, daftarPathGambarSoal(normalisasiGambarSoal(sasaran.gambar))).catch(() => {});
     setToast({ id: Date.now(), tone: 'success', text: 'Soal dihapus.' });
     muatSoal();
   };
@@ -167,11 +172,21 @@ export default function SusunLkpdPage({ params }: { params: { id: string } }) {
         )}
       </div>
       <p className="text-sm text-[#1F2A37] mt-2 whitespace-pre-wrap">{q.pertanyaan}</p>
+      <GaleriGambarSoal items={normalisasiGambarSoal(q.gambar).pertanyaan} ukuran="kecil" className="mt-2" />
       {q.tipe === 'pg' && (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-1 mt-2">
-          {OPSI.map((h) => teksOpsi(q, h) && (
-            <span key={h} className={`text-xs px-2 py-1 rounded-md ${mode === 'susun' && (q.kunci_jawaban ?? '').toUpperCase() === h ? 'bg-[#E4F8EE] text-[#15885A] font-bold' : 'bg-[#F8FAFC] text-[#4B5A70]'}`}>{h}. {teksOpsi(q, h)}</span>
-          ))}
+          {OPSI.map((h) => {
+            if (!opsiTersedia(q, h)) return null;
+            const g = gambarOpsi(q, h);
+            const t = teksOpsi(q, h);
+            return (
+              <span key={h} className={`text-xs px-2 py-1 rounded-md flex items-center gap-2 ${mode === 'susun' && (q.kunci_jawaban ?? '').toUpperCase() === h ? 'bg-[#E4F8EE] text-[#15885A] font-bold' : 'bg-[#F8FAFC] text-[#4B5A70]'}`}>
+                <span className="shrink-0">{h}.</span>
+                {g && <GambarOpsi item={g} huruf={h} ukuran="kecil" />}
+                {t && <span className="min-w-0">{t}</span>}
+              </span>
+            );
+          })}
         </div>
       )}
     </div>

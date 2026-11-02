@@ -1,12 +1,26 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Modal } from '@/components/ui/modal';
 import { Spinner } from '@/components/ui/skeleton';
 import { JENIS, OPSI, TAHAPAN_BAWAAN, pesanGalat, tahapanDari, type JenisPengerjaan, type KriteriaRubrik, type Soal, type TahapLkpd } from '@/lib/pengerjaan';
-import { FORMAT_DEFAULT_ESSAY, GRUP_FORMAT_ESSAY, labelFormatFile, normalisasiFormatFile } from '@/lib/lampiran/tipe';
-import { AlertTriangle, Plus, Trash2, Sparkles, Paperclip, Check } from 'lucide-react';
+import {
+  FORMAT_DEFAULT_ESSAY,
+  GRUP_FORMAT_ESSAY,
+  MAKS_GAMBAR_PER_SOAL,
+  daftarPathGambarSoal,
+  labelFormatFile,
+  muatanGambarSoal,
+  normalisasiFormatFile,
+  normalisasiGambarSoal,
+  selisihPathGambar,
+  type GambarSoalSet,
+  type HurufOpsiGambar,
+} from '@/lib/lampiran/tipe';
+import { hapusGambarSoalStorage } from '@/lib/lampiran/unggah-xhr';
+import { InputGambarSoal, gambarDariClipboard, type InputGambarSoalHandle } from '@/components/input-gambar-soal';
+import { AlertTriangle, Plus, Trash2, Sparkles, Paperclip, Check, Loader2 } from 'lucide-react';
 
 export interface MateriRingkas {
   id: string;
@@ -32,6 +46,7 @@ interface Form {
   rubrik: (Omit<KriteriaRubrik, 'nilai' | 'poin' | 'toleransi'> & { nilai: string; poin: string; toleransi: string })[];
   format_file: string[];
   ekstensi_kustom: string;
+  gambar: GambarSoalSet;
 }
 
 export type AwalSoal = Partial<Soal> & { category: JenisPengerjaan };
@@ -73,6 +88,7 @@ function keForm(a: AwalSoal): Form {
     rubrik: (Array.isArray(a.rubrik) ? a.rubrik : []).map((k) => ({ jenis: k.jenis, label: k.label ?? '', nilai: String(k.nilai ?? ''), poin: String(k.poin ?? ''), toleransi: k.toleransi != null ? String(k.toleransi) : '' })),
     format_file: norm.filter((x) => KUNCI_GRUP_FORMAT.has(x)),
     ekstensi_kustom: norm.filter((x) => !KUNCI_GRUP_FORMAT.has(x)).join(', '),
+    gambar: normalisasiGambarSoal(a.gambar),
   };
 }
 
@@ -88,16 +104,67 @@ export function FormSoal({
   onClose: () => void;
   onTersimpan: (info: { baru: boolean; kategori: JenisPengerjaan }) => void;
 }) {
-  const supabase = createClient();
+  // Instance stabil: efek pembersihan unggahan bergantung pada klien ini
+  const supabase = useMemo(() => createClient(), []);
   const [form, setForm] = useState<Form | null>(null);
   const [tahapan, setTahapan] = useState<TahapLkpd[]>(TAHAPAN_BAWAAN);
   const [galat, setGalat] = useState<string | null>(null);
   const [menyimpan, setMenyimpan] = useState(false);
+  const [uid, setUid] = useState<string | null>(null);
+  const [sibukGambar, setSibukGambar] = useState<Record<string, boolean>>({});
+  const inputGambarRef = useRef<InputGambarSoalHandle>(null);
+  const opsiRef = useRef<Partial<Record<string, InputGambarSoalHandle | null>>>({});
+  // Path gambar yang sudah tersimpan di database saat form dibuka, dan yang diunggah selama form terbuka.
+  const pathAwalRef = useRef<string[]>([]);
+  const pathBaruRef = useRef<Set<string>>(new Set());
+  const ditutupRef = useRef(false);
 
   useEffect(() => {
-    setForm(awal ? keForm(awal) : null);
+    supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null));
+  }, [supabase]);
+
+  useEffect(() => {
+    const f = awal ? keForm(awal) : null;
+    setForm(f);
     setGalat(null);
+    setSibukGambar({});
+    pathAwalRef.current = f ? daftarPathGambarSoal(f.gambar) : [];
+    pathBaruRef.current = new Set();
+    ditutupRef.current = !awal;
   }, [awal]);
+
+  /** Hapus dari Storage gambar yang diunggah selama form ini terbuka tetapi tidak jadi disimpan. */
+  const buangUnggahanBelumTersimpan = useCallback(() => {
+    const baru = Array.from(pathBaruRef.current).filter((p) => !pathAwalRef.current.includes(p));
+    pathBaruRef.current = new Set();
+    if (baru.length) hapusGambarSoalStorage(supabase, baru).catch(() => {});
+  }, [supabase]);
+
+  // Form dilepas (mis. pindah halaman) sebelum disimpan: jangan tinggalkan berkas yatim di Storage.
+  useEffect(() => () => buangUnggahanBelumTersimpan(), [buangUnggahanBelumTersimpan]);
+
+  const catatUnggahBaru = useCallback(
+    (path: string) => {
+      if (ditutupRef.current) {
+        // Unggahan selesai setelah form ditutup → langsung buang
+        hapusGambarSoalStorage(supabase, [path]).catch(() => {});
+        return;
+      }
+      pathBaruRef.current.add(path);
+    },
+    [supabase]
+  );
+
+  const aturSibuk = useCallback((kunci: string, nilai: boolean) => {
+    setSibukGambar((s) => (s[kunci] === nilai ? s : { ...s, [kunci]: nilai }));
+  }, []);
+  const sibukUnggah = Object.values(sibukGambar).some(Boolean);
+
+  const tutup = () => {
+    ditutupRef.current = true;
+    buangUnggahanBelumTersimpan();
+    onClose();
+  };
 
   // Tahapan LKPD milik bab yang dipilih
   useEffect(() => {
@@ -111,20 +178,26 @@ export function FormSoal({
   }, [form?.category, form?.id_materi, supabase]);
 
   const ubah = (patch: Partial<Form>) => setForm((f) => (f ? { ...f, ...patch } : f));
+  const ubahGambar = (patch: Partial<GambarSoalSet>) => setForm((f) => (f ? { ...f, gambar: { ...f.gambar, ...patch } } : f));
+  const ubahGambarOpsi = (h: HurufOpsiGambar, items: GambarSoalSet['pertanyaan']) =>
+    setForm((f) => (f ? { ...f, gambar: { ...f.gambar, opsi: { ...f.gambar.opsi, [h]: items[0] ?? null } } } : f));
   const ubahKriteria = (i: number, patch: Partial<Form['rubrik'][number]>) => ubah({ rubrik: form!.rubrik.map((k, j) => (j === i ? { ...k, ...patch } : k)) });
 
   const simpan = async () => {
     if (!form) return;
     setGalat(null);
+    if (sibukUnggah) return setGalat('Tunggu kompresi & unggahan gambar selesai sebelum menyimpan.');
     if (!form.pertanyaan.trim()) return setGalat('Teks pertanyaan belum diisi.');
     const bobot = Number(form.bobot);
     if (!Number.isFinite(bobot) || bobot < 0 || bobot > 100) return setGalat('Bobot harus antara 0 sampai 100.');
     const urutan = Number(form.urutan);
     if (!Number.isInteger(urutan) || urutan < 1) return setGalat('Nomor urut harus bilangan bulat mulai dari 1.');
     if (form.tipe === 'pg') {
-      if (!form.opsi_a.trim() || !form.opsi_b.trim()) return setGalat('Isi minimal opsi A dan B.');
+      // Opsi dianggap terisi bila berisi teks ATAU gambar
+      const terisi = (h: string) => Boolean(form[`opsi_${h.toLowerCase()}` as 'opsi_a'].trim() || form.gambar.opsi[h as HurufOpsiGambar]);
+      if (!terisi('A') || !terisi('B')) return setGalat('Isi minimal opsi A dan B (teks atau gambar).');
       const kunci = form.kunci_jawaban;
-      if (!kunci || !form[`opsi_${kunci.toLowerCase()}` as 'opsi_a'].trim()) return setGalat('Pilih kunci jawaban dari opsi yang sudah diisi.');
+      if (!kunci || !terisi(kunci)) return setGalat('Pilih kunci jawaban dari opsi yang sudah diisi.');
     }
     const rubrik: KriteriaRubrik[] = [];
     if (form.tipe === 'essay') {
@@ -147,10 +220,12 @@ export function FormSoal({
     }
     setMenyimpan(true);
     const formatAkhir = form.tipe === 'essay' ? daftarFormatAkhir(form) : null;
-    const { ekstensi_kustom: _abaikanKustom, ...muatanForm } = form;
+    const { ekstensi_kustom: _abaikanKustom, gambar: _gambarForm, ...muatanForm } = form;
+    const gambarAkhir = muatanGambarSoal(form.gambar, form.tipe);
     const { error } = await supabase.rpc('simpan_soal', {
       p_soal: {
         ...muatanForm,
+        gambar: gambarAkhir,
         bobot,
         urutan,
         id: form.id ?? '',
@@ -163,6 +238,13 @@ export function FormSoal({
     });
     setMenyimpan(false);
     if (error) return setGalat(pesanGalat(error));
+    // Bersihkan gambar lama yang dilepas & unggahan sesi ini yang tidak dipakai
+    const dipakai = daftarPathGambarSoal(gambarAkhir);
+    const buang = selisihPathGambar([...pathAwalRef.current, ...Array.from(pathBaruRef.current)], dipakai);
+    if (buang.length) hapusGambarSoalStorage(supabase, buang).catch(() => {});
+    pathAwalRef.current = dipakai;
+    pathBaruRef.current = new Set();
+    ditutupRef.current = true;
     onTersimpan({ baru: !form.id, kategori: form.category });
   };
 
@@ -173,16 +255,22 @@ export function FormSoal({
       open={form !== null}
       busy={menyimpan}
       lebar="lg"
-      onClose={onClose}
+      onClose={tutup}
       title={form?.id ? 'Ubah Soal' : 'Tambah Soal'}
       actions={
         <>
-          <button type="button" onClick={onClose} disabled={menyimpan} className="btn-press px-5 py-2.5 rounded-xl border border-[#DCEAF7] text-[#4B5A70] font-bold text-sm hover:bg-[#F4F9FF] disabled:opacity-50">
+          <button type="button" onClick={tutup} disabled={menyimpan} className="btn-press px-5 py-2.5 rounded-xl border border-[#DCEAF7] text-[#4B5A70] font-bold text-sm hover:bg-[#F4F9FF] disabled:opacity-50">
             Batal
           </button>
-          <button type="button" onClick={simpan} disabled={menyimpan} className="btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70">
-            {menyimpan && <Spinner />}
-            {menyimpan ? 'Menyimpan...' : 'Simpan Soal'}
+          <button
+            type="button"
+            onClick={simpan}
+            disabled={menyimpan || sibukUnggah}
+            title={sibukUnggah ? 'Tunggu kompresi & unggahan gambar selesai' : undefined}
+            className="btn-press px-5 py-2.5 rounded-xl bg-[#2E7BC4] hover:bg-[#1B4E80] text-white font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-70"
+          >
+            {menyimpan ? <Spinner /> : sibukUnggah ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+            {menyimpan ? 'Menyimpan...' : sibukUnggah ? 'Menunggu gambar...' : 'Simpan Soal'}
           </button>
         </>
       }
@@ -225,12 +313,41 @@ export function FormSoal({
 
           <div>
             <label htmlFor="f-pertanyaan" className="block text-xs font-bold mb-1.5">Pertanyaan</label>
-            <textarea id="f-pertanyaan" rows={3} value={form.pertanyaan} onChange={(e) => ubah({ pertanyaan: e.target.value })} className={`${inputClass} resize-y`} placeholder="Tulis pertanyaan..." />
+            <textarea
+              id="f-pertanyaan"
+              rows={3}
+              value={form.pertanyaan}
+              onChange={(e) => ubah({ pertanyaan: e.target.value })}
+              onPaste={(e) => {
+                // Tempel screenshot langsung di kolom pertanyaan → masuk ke gambar soal
+                const f = gambarDariClipboard(e.clipboardData);
+                if (f.length) {
+                  e.preventDefault();
+                  inputGambarRef.current?.tambahBerkas(f);
+                }
+              }}
+              className={`${inputClass} resize-y`}
+              placeholder="Tulis pertanyaan... (screenshot bisa langsung ditempel dengan Ctrl+V)"
+            />
+          </div>
+
+          <div className="rounded-2xl border border-[#DCEAF7] bg-[#F8FBFF] p-3.5">
+            <InputGambarSoal
+              ref={inputGambarRef}
+              supabase={supabase}
+              uid={uid}
+              items={form.gambar.pertanyaan}
+              maks={MAKS_GAMBAR_PER_SOAL}
+              label="soal"
+              onChange={(items) => ubahGambar({ pertanyaan: items })}
+              onSibukChange={(b) => aturSibuk('pertanyaan', b)}
+              onUnggahBaru={catatUnggahBaru}
+            />
           </div>
 
           {form.tipe === 'pg' ? (
             <fieldset>
-              <legend className="block text-xs font-bold mb-1.5">Opsi jawaban — pilih bulatan untuk menandai kunci</legend>
+              <legend className="block text-xs font-bold mb-1.5">Opsi jawaban: pilih bulatan untuk menandai kunci. Opsi boleh berisi teks, gambar, atau keduanya.</legend>
               <div className="space-y-2">
                 {OPSI.map((h) => {
                   const kunci = form.kunci_jawaban === h;
@@ -241,7 +358,42 @@ export function FormSoal({
                         <input type="radio" name="kunci" checked={kunci} onChange={() => ubah({ kunci_jawaban: h })} className="w-4 h-4 accent-[#22B573]" aria-label={`Kunci jawaban ${h}`} />
                         <span className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-extrabold ${kunci ? 'bg-[#22B573] text-white' : 'bg-[#F1F5F9] text-[#4B5A70]'}`}>{h}</span>
                       </label>
-                      <input type="text" aria-label={`Opsi ${h}`} value={form[kolom]} onChange={(e) => ubah({ [kolom]: e.target.value } as Partial<Form>)} placeholder={h === 'A' || h === 'B' ? `Opsi ${h} (wajib)` : `Opsi ${h} (opsional)`} className="flex-1 px-3 py-2 rounded-lg text-sm focus:outline-none bg-transparent" />
+                      <input
+                        type="text"
+                        aria-label={`Opsi ${h}`}
+                        value={form[kolom]}
+                        onChange={(e) => ubah({ [kolom]: e.target.value } as Partial<Form>)}
+                        onPaste={(e) => {
+                          // Screenshot ditempel di kolom opsi → jadi gambar opsi
+                          const f = gambarDariClipboard(e.clipboardData);
+                          if (f.length) {
+                            e.preventDefault();
+                            opsiRef.current[h]?.tambahBerkas(f);
+                          }
+                        }}
+                        placeholder={
+                          form.gambar.opsi[h]
+                            ? `Keterangan opsi ${h} (opsional)`
+                            : h === 'A' || h === 'B'
+                            ? `Opsi ${h} (teks atau gambar, wajib)`
+                            : `Opsi ${h} (opsional)`
+                        }
+                        className="flex-1 min-w-0 px-3 py-2 rounded-lg text-sm focus:outline-none bg-transparent"
+                      />
+                      <InputGambarSoal
+                        ref={(el) => {
+                          opsiRef.current[h] = el;
+                        }}
+                        supabase={supabase}
+                        uid={uid}
+                        varian="opsi"
+                        label={`opsi ${h}`}
+                        items={form.gambar.opsi[h] ? [form.gambar.opsi[h]!] : []}
+                        maks={1}
+                        onChange={(items) => ubahGambarOpsi(h, items)}
+                        onSibukChange={(b) => aturSibuk(`opsi-${h}`, b)}
+                        onUnggahBaru={catatUnggahBaru}
+                      />
                     </div>
                   );
                 })}

@@ -12,7 +12,9 @@ import {
   type TahapLkpd,
 } from '@/lib/pengerjaan';
 import {
+  BUCKET_GAMBAR_SOAL,
   BUCKET_JAWABAN_ESSAY,
+  normalisasiGambarSoal,
   type HasilForensikAi,
   type TingkatIndikasiAi,
 } from '@/lib/lampiran/tipe';
@@ -79,7 +81,8 @@ export async function POST(req: Request) {
     const { data: l } = await supabase.from('lkpd').select('tahapan').eq('id_materi', baris.id_materi).maybeSingle();
     if (l) tahapan = tahapanDari(l.tahapan);
   }
-  const soal = keSoalKoreksi(urutkanSoal((soalData ?? []) as Soal[], tahapan));
+  const soalAsli = urutkanSoal((soalData ?? []) as Soal[], tahapan);
+  const soal = keSoalKoreksi(soalAsli);
   if (!soal.length) return tolak(422, 'Belum ada soal untuk tugas ini.');
   const jawabanAsli = petaJawaban(baris[kolom]);
   const petaBerkas = petaLampiran(baris[kolom]);
@@ -164,6 +167,47 @@ export async function POST(req: Request) {
     }
   }
 
+  // Gambar soal yang tidak ikut dikirim ke AI (terlalu besar / format tidak didukung / gagal diunduh)
+  let gambarSoalDilewati = 0;
+
+  /** Unduh gambar soal (diagram/grafik dari guru) sebagai konteks AI, hanya untuk soal uraian yang dijawab. */
+  const muatGambarSoalUntukAi = async (): Promise<MediaLampiranGemini[]> => {
+    const mediaSoal: MediaLampiranGemini[] = [];
+    let totalByteGambarSoal = 0;
+    for (const q of soalAsli) {
+      if (q.tipe === 'pg') continue;
+      const dijawab = (jawabanDiperkaya[q.id] ?? '').trim().length > 0 || (petaBerkas[q.id]?.length ?? 0) > 0;
+      if (!dijawab) continue;
+      for (const g of normalisasiGambarSoal(q.gambar).pertanyaan) {
+        try {
+          const { data: blobGbr } = await supabase.storage.from(BUCKET_GAMBAR_SOAL).download(g.path);
+          if (!blobGbr) {
+            gambarSoalDilewati++;
+            continue;
+          }
+          const bytes = new Uint8Array(await blobGbr.arrayBuffer());
+          const mime = (g.mime || blobGbr.type || '').toLowerCase();
+          // Batas menjaga total permintaan (base64) tetap di bawah ~20 MB batas inline Gemini
+          if (
+            !MIME_MULTIMODAL_GEMINI.has(mime) ||
+            bytes.byteLength > 3 * 1024 * 1024 ||
+            totalByteGambarSoal + bytes.byteLength > 4 * 1024 * 1024 ||
+            totalByteMedia + totalByteGambarSoal + bytes.byteLength > 13 * 1024 * 1024
+          ) {
+            gambarSoalDilewati++;
+            continue;
+          }
+          totalByteGambarSoal += bytes.byteLength;
+          mediaSoal.push({ idSoal: q.id, nama: g.original_name || g.name, mimeType: mime, base64: Buffer.from(bytes).toString('base64'), peran: 'soal' });
+        } catch {
+          // gambar soal hanya konteks tambahan; lewati bila gagal diunduh
+          gambarSoalDilewati++;
+        }
+      }
+    }
+    return mediaSoal;
+  };
+
   const sesuaikanAturanUntukFoto = (h: HasilKoreksi): HasilKoreksi => {
     let adaManual = false;
     const perSoalBaru = h.per_soal.map((p) => {
@@ -206,12 +250,15 @@ export async function POST(req: Request) {
       kunci,
       jenis,
       model: process.env.GEMINI_MODELS?.split(',').map((s) => s.trim()).filter(Boolean),
-      media: mediaGemini,
+      media: [...(await muatGambarSoalUntukAi()), ...mediaGemini],
     });
     if (g.ok) {
       hasil = g.hasil;
       sumber = 'gemini';
       model = g.model;
+      if (gambarSoalDilewati > 0) {
+        hasil.catatan_sistem = `${gambarSoalDilewati} gambar soal tidak ikut dikirim ke AI (terlalu besar atau format tidak didukung); periksa bagian yang bergantung pada gambar tersebut.`;
+      }
     } else {
       hasil = sesuaikanAturanUntukFoto(koreksiAturan(soal, jawabanDiperkaya));
       hasil.catatan_sistem = `${g.alasan} Saran ini dibuat mesin koreksi cadangan (berbasis rubrik); coba lagi beberapa menit lagi untuk memakai AI.`;

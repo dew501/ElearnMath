@@ -9,6 +9,8 @@ import { SiswaNav } from '@/components/siswa-nav';
 import { LockBanner } from '@/components/lock-banner';
 import { PengantarLkpd, KepalaTahap } from '@/components/lkpd-pengantar';
 import { RingkasanTinjau, KartuTinjau, type HasilTinjau } from '@/components/tinjau-soal';
+import { GaleriGambarSoal, GambarOpsi } from '@/components/gambar-soal';
+import { normalisasiGambarSoal } from '@/lib/lampiran/tipe';
 import { InputLampiranEssay } from '@/components/input-lampiran-essay';
 import { Modal } from '@/components/ui/modal';
 import { ScoreRing } from '@/components/ui/score-ring';
@@ -29,6 +31,8 @@ import {
   petaLampiran,
   tahapanDari,
   teksOpsi,
+  gambarOpsi,
+  opsiTersedia,
   urutkanSoal,
   type JenisPengerjaan,
   type Soal,
@@ -849,14 +853,16 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                     </span>
                   </div>
 
-                  <div className="text-sm md:text-[15px] font-semibold text-[#1F2A37] mb-5 leading-relaxed">{q.pertanyaan}</div>
+                  <div className="text-sm md:text-[15px] font-semibold text-[#1F2A37] mb-5 leading-relaxed whitespace-pre-wrap">{q.pertanyaan}</div>
+                  <GaleriGambarSoal items={normalisasiGambarSoal(q.gambar).pertanyaan} className="mb-5" />
 
                   {/* Input Jawaban PG (radio asli: bisa dipilih dengan keyboard) */}
                   {q.tipe === 'pg' ? (
                     <div className="grid gap-2.5" role="radiogroup" aria-label={`Pilihan jawaban soal ${idx + 1}`}>
                       {OPSI.map((optKey) => {
+                        if (!opsiTersedia(q, optKey)) return null;
                         const optText = teksOpsi(q, optKey);
-                        if (!optText) return null;
+                        const optGambar = gambarOpsi(q, optKey);
                         const isSelected = answers[q.id] === optKey;
                         return (
                           <label
@@ -882,7 +888,10 @@ export default function PengerjaanPage({ params }: PengerjaanProps) {
                             >
                               {optKey}
                             </span>
-                            <span className="flex-1">{optText}</span>
+                            <span className="flex-1 min-w-0 flex flex-col items-start sm:flex-row sm:items-center gap-2">
+                              {optGambar && <GambarOpsi item={optGambar} huruf={optKey} />}
+                              {optText ? <span>{optText}</span> : <span className="sr-only">Opsi {optKey} berupa gambar</span>}
+                            </span>
                             {isSelected && <Check className="w-4 h-4 text-[#256FB8] anim-chip shrink-0" strokeWidth={3} />}
                           </label>
                         );
